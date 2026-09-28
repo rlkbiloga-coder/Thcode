@@ -1,0 +1,15 @@
+{
+  "name": "Thcode — Mobile IDE",
+  "short_name": "Thcode",
+  "description": "Editor de código mobile open-source: terminal Linux, plugins, IA e preview.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0b0e13",
+  "theme_color": "#a100ff",
+  "lang": "pt-BR",
+  "icons": [
+    { "src": "assets/logo.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

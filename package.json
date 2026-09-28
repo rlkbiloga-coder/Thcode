@@ -1,0 +1,12 @@
+{
+  "name": "thcode",
+  "version": "2.0.0",
+  "description": "Thcode — editor de código mobile open-source (HTML5 + CSS3 + JS puro)",
+  "type": "module",
+  "scripts": {
+    "start": "python3 -m http.server 8158",
+    "test": "node --check script.js && node tests/smoke.mjs",
+    "lint": "node --check script.js"
+  },
+  "license": "MIT"
+}
