@@ -23,7 +23,7 @@ const fmtSize = b => b < 1024 ? b + ' B' : b < 1048576 ? (b / 1024).toFixed(1) +
 const icon = (n, st = '') => `<svg ${st ? `style="${st}"` : ''} aria-hidden="true"><use href="#i-${n}"/></svg>`;
 const APP_VER = 'v2.0.0 (2000)';
 const ACODE_BASE = 'v1.13.5 (1011)';
-const THCODE_REPO = 'https://github.com/thcode/thcode'; // ← troque pela URL do seu repositório privado
+const THCODE_REPO = 'https://github.com/rlkbiloga-coder/Thcode';
 
 function vibrate(ms = 10) {
   try { if (S.vibrateOnTap && navigator.vibrate) navigator.vibrate(ms); } catch (_) {}
