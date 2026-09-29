@@ -11,7 +11,7 @@ services:
       - key: THCODE_API_TOKEN
         generateValue: true
       - key: WORKSPACE_DIR
-        value: /workspace
+        value: /opt/render/project/workspace
       - key: STRIPE_SECRET_KEY
         sync: false
       - key: GITHUB_TOKEN
