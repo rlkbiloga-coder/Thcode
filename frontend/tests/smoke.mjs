@@ -155,7 +155,7 @@ await test('sobre mostra versão Studio', async () => {
 });
 await test('changelog tem 2.0.0', async () => {
   T.SettingsPage.changelog();
-  assert($('#pageBody').textContent.includes('2.4.0'), 'sem entrada');
+  assert($('#pageBody').textContent.includes('2.0.0'), 'sem entrada');
   T.Page.back();
 });
 await test('GitHub renderiza busca (sem rede)', async () => {
