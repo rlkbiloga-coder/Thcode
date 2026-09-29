@@ -3071,14 +3071,8 @@ function initGestures() {
 }
 
 /* ============================== STATUSBAR / TICKERS ============================== */
-function tickClock() {
-  const d = new Date();
-  $('#clock').textContent = `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
-}
-function tickNet() {
-  const v = Math.random() * 1800 + 40;
-  $('#netSpeed').textContent = v > 1000 ? (v / 1000).toFixed(2) + 'M' : v.toFixed(1);
-}
+function tickClock() {}
+function tickNet() {}
 
 /* ============================== BOOT ============================== */
 function restore() {
