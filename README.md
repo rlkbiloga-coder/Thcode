@@ -38,6 +38,12 @@ docs/                              → PLUGIN_API, ARCHITECTURE, PRIVACY, TERMS�
 .github/                           → CI, templates, CODEOWNERS
 ```
 
+## 📄 Legal e Proteção
+
+- [Termos de Uso](docs/TERMS.md) · [Política de Privacidade](docs/PRIVACY.md) (LGPD, 100% local)
+- [Código de Conduta](CODE_OF_CONDUCT.md) · [Segurança](SECURITY.md)
+- Denúncia de vulnerabilidade: aba *Security* do repositório (relatório privado)
+
 > Baseado nos fluxos do [Acode](https://github.com/Acode-Foundation/Acode) (GPL-3.0).
 > O código do Thcode é original e licenciado em **MIT** — veja [LICENSE](LICENSE).
 
