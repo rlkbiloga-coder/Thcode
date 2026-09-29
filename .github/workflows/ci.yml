@@ -7,11 +7,13 @@ on:
 jobs:
   check:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - run: node --check script.js
-      - run: npm install --no-save jsdom
-      - run: node tests/smoke.mjs
+      - run: npm install --no-save jsdom@24
+      - run: npm test
