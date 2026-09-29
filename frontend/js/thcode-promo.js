@@ -4,6 +4,8 @@
    ============================================================ */
 (() => {
   'use strict';
+  if (window.__thcode_promo_initialized) return;
+  window.__thcode_promo_initialized = true;
   const W = window.ThcodeTest;
   if (!W) return;
   const { Page, Preview, Panel, esc } = W;

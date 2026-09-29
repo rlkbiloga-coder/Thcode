@@ -11,6 +11,8 @@
    ============================================================ */
 (() => {
   'use strict';
+  if (window.__thcode_pro_initialized) return;
+  window.__thcode_pro_initialized = true;
   const W = window.ThcodeTest;
   if (!W) { console.warn('ThcodePro: base não encontrada'); return; }
 

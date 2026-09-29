@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0b0e13">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -36,6 +36,7 @@
 }
 </script>
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="modern.css">
 </head>
 <body data-theme="neon">
 
@@ -154,6 +155,7 @@
       <div class="panel-head no-select">
         <div class="panel-titles"><div class="panel-title" id="panelTitle">Arquivos</div><div class="panel-subtitle" id="panelSubtitle">/MeuJarvis</div></div>
         <div class="panel-actions" id="panelActions"></div>
+        <button class="panel-close" id="panelClose" aria-label="Fechar painel" title="Fechar painel">×</button>
       </div>
       <div class="panel-scroll" id="panelBody"></div>
     </aside>
@@ -192,7 +194,7 @@
 <nav class="drawer hidden" id="drawer" aria-label="Menu principal">
   <div class="drawer-head">
     <div class="drawer-logo"><svg><use href="#i-logo"/></svg></div>
-    <div class="drawer-meta"><strong>Thcode</strong><span>v2.0.0 • pt-BR</span></div>
+    <div class="drawer-meta"><strong>Thcode</strong><span>v2.4.0 • Studio</span></div>
     <button class="icon-btn sm" id="drawerClose" aria-label="Fechar"><svg><use href="#i-close"/></svg></button>
   </div>
   <div class="drawer-scroll" id="drawerBody"></div>

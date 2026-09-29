@@ -5,6 +5,8 @@
    ============================================================ */
 (() => {
   'use strict';
+  if (window.__thcode_legal_initialized) return;
+  window.__thcode_legal_initialized = true;
   const W = window.ThcodeTest;
   const LS = 'thcode.legal.v1';
   const TERMS_VERSION = '2026-09-29';
@@ -132,19 +134,16 @@
   setTimeout(tryVerify, 800);
 })();
 
-/* ---------- ONBOARDING de primeira execução (real, 1x) ---------- */
+/* First-run hint waits for consent instead of stacking dialogs. */
 (() => {
   if (localStorage.getItem('thcode.tour.v1')) return;
-  setTimeout(() => {
-    if (!confirm(`Bem-vindo ao Thcode! 🚀
-
-3 dicas rápidas:
-1. Paleta de comandos: Ctrl+Shift+P (tudo do editor)
-2. Terminal local opera o VFS de verdade; shell completo (apk/npm/python) conectando o backend em "Servidor"
-3. pkg add <pacote> instala de verdade via jsDelivr
-
-Quer ver a página Thcode Pro agora?`)) return Promise.resolve(false);
+  const show = () => {
+    if (document.querySelector('#legalGate, #cookieBar, #splash')) return;
+    observer.disconnect();
     localStorage.setItem('thcode.tour.v1', new Date().toISOString());
-    if (window.ThcodePromo) window.ThcodePromo.open();
-  }, 2500);
+    window.ThcodeTest?.toast('Menu: ferramentas e configurações. Ctrl+Shift+P: comandos.', 'info');
+  };
+  const observer = new MutationObserver(show);
+  observer.observe(document.body, {childList: true, subtree: true});
+  show();
 })();

@@ -1,0 +1,25 @@
+/* Thcode Studio: token-based UI, compositor-only entrance motion. */
+body{--ui-ease:cubic-bezier(.22,1,.36,1);--rail-w:56px;--top-h:56px}
+body[data-theme="neon"]{--accent:#8b7cff;--accent2:#b0a5ff;--accent-soft:rgba(139,124,255,.14);--accent-glow:rgba(139,124,255,.18);--glow:0 4px 16px rgba(139,124,255,.16);--bg:#0c1018;--bg2:#111722;--surface:#151c28;--surface2:#1c2533;--line:#2a3546;--muted:#a5b1c3;--muted2:#8492a8;--gutter-fg:#8492a8;--editor-bg:#0d121b;--tab-active:#242d40}
+.topbar{gap:6px;padding:0 10px;background:var(--bg2)}
+.tabs{gap:6px}.tab{height:38px;border-radius:10px;max-width:210px;padding-left:12px}.tab.active{box-shadow:inset 0 -2px var(--accent);border-color:var(--line)}
+.icon-btn,.icon-mini,.rail-btn,.qt-key,.big-btn,.mini-btn{transition:background-color .18s,color .18s,box-shadow .18s,transform .2s var(--ui-ease)}
+button:active{transform:translateY(1px)}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.rail{overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;gap:6px;padding:10px 5px}.rail-btn{flex-shrink:0;width:44px;height:44px;border-radius:12px}.avatar{flex-shrink:0}.rail-spacer{min-height:8px}.rail-btn.active{background:var(--accent-soft);color:var(--accent2);box-shadow:inset 3px 0 var(--accent)}
+.panel{width:min(82vw,350px);transition:transform .32s var(--ui-ease)}
+.panel-head{padding:16px 14px;min-height:68px}.panel-title{font-weight:700;letter-spacing:-.3px}.panel-subtitle{margin-top:5px}.panel-scroll{padding:12px}
+.panel-close{margin-left:4px;flex-shrink:0;width:32px;height:32px;border-radius:8px;font-size:22px;color:var(--muted)}.panel-close:hover{background:var(--surface2)}
+.row,.set-row,.plugin-row{border-radius:10px;transition:background-color .18s;min-height:46px}.sect{letter-spacing:.09em;font-size:10px;text-transform:uppercase;margin-top:18px;color:var(--muted)}
+.crumb-bar{min-height:34px;padding-left:14px}.editor-status{gap:12px;overflow-x:auto;white-space:nowrap}.editor-area{min-width:0}
+.big-btn{border-radius:12px;min-height:44px;padding:12px 16px;font-weight:600}.big-btn.primary{box-shadow:0 4px 14px var(--accent-soft)}
+.drawer{width:min(88vw,340px);transition:transform .32s var(--ui-ease)}.drawer-head{padding:20px 16px}.drawer-logo{box-shadow:none;border-radius:14px}.drawer-item{border-radius:10px}.drawer-scroll{padding:10px}
+.page-head{min-height:60px}.page-title{font-weight:700;letter-spacing:-.3px}.page-scroll{padding:16px}.page-root:not(.closing),.palette-wrap:not(.hidden) .palette,.dialog-root:not(.hidden) .dialog{animation:studio-enter .26s var(--ui-ease) both}
+.quicktools{padding:6px 8px calc(6px + env(safe-area-inset-bottom));background:var(--bg2)}.qt-row{gap:4px}.qt-key{border-radius:8px}.qt-fab{width:36px;height:36px;right:10px;bottom:calc(102px + env(safe-area-inset-bottom));box-shadow:0 4px 18px rgba(0,0,0,.24)}
+.pr-card,.lg-card{box-shadow:0 12px 40px rgba(0,0,0,.16)}.pr-card{transition:transform .22s var(--ui-ease),border-color .22s}.lg-card{max-height:85dvh;overflow-y:auto;animation:studio-enter .3s var(--ui-ease)}
+#cookieBar{max-height:40dvh;overflow:auto;left:16px;right:16px;bottom:calc(16px + env(safe-area-inset-bottom));animation:studio-enter .3s var(--ui-ease)}
+@keyframes studio-enter{from{opacity:0;transform:translateY(12px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
+@media(hover:hover){.pr-card:hover{transform:translateY(-3px);border-color:var(--accent)}.big-btn:hover{transform:translateY(-1px)}}
+@media(min-width:1000px){.panel{position:relative;left:auto;width:0;flex:none;transform:none;overflow:hidden;box-shadow:none;border:0;visibility:hidden}.panel.open{width:320px;visibility:visible;border-right:1px solid var(--line)}.panel-head,.panel-scroll{min-width:320px}.editor-area{flex:1}.page-scroll{max-width:860px}}
+@media(max-width:480px){.topbar{padding:0 5px;gap:2px}.tab{max-width:150px}.page-scroll{padding:12px}.pr-title{font-size:28px}.panel-head{padding:12px}.editor-status{font-size:10px}.cb-btns{width:100%}.cb-btns button{flex:1;min-height:44px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}

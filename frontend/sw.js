@@ -1,18 +1,16 @@
-/* Thcode service worker — cache-first offline (v2.1) */
-const CACHE = 'thcode-v2.1';
-const CORE = ['./', './index.html', './style.css', './script.js', './js/thcode-pro.js', './manifest.json',
-  './assets/logo.svg', './assets/icon-192.png', './assets/icon-512.png'];
-self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(CORE)).then(() => self.skipWaiting()));
-});
-self.addEventListener('activate', e => {
-  e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim()));
-});
-self.addEventListener('fetch', e => {
-  if (e.request.method !== 'GET' || !e.request.url.startsWith(self.location.origin)) return;
-  e.respondWith(caches.match(e.request).then(hit => hit || fetch(e.request).then(res => {
-    const copy = res.clone();
-    caches.open(CACHE).then(c => c.put(e.request, copy));
-    return res;
-  }).catch(() => caches.match('./index.html'))));
+/* Network-first application assets; offline fallback never returns HTML as JS. */
+const CACHE = 'thcode-studio-2.4.0';
+const CORE = ['./', './index.html', './style.css', './modern.css', './script.js',
+ './js/thcode-pro.js', './js/thcode-server.js', './js/thcode-promo.js', './js/thcode-legal.js',
+ './manifest.json', './assets/logo.svg', './assets/icon-192.png', './assets/icon-512.png'];
+self.addEventListener('install', event => event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(CORE)).then(() => self.skipWaiting())));
+self.addEventListener('activate', event => event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key.startsWith('thcode-') && key !== CACHE).map(key => caches.delete(key)))).then(() => self.clients.claim())));
+self.addEventListener('fetch', event => {
+ const url = new URL(event.request.url);
+ if (event.request.method !== 'GET' || url.origin !== self.location.origin) return;
+ if (!CORE.some(path => new URL(path, self.registration.scope).pathname === url.pathname)) return;
+ event.respondWith(fetch(event.request).then(response => {
+   if (response.ok) {const copy = response.clone(); event.waitUntil(caches.open(CACHE).then(cache => cache.put(event.request, copy)));}
+   return response;
+ }).catch(async () => (await caches.match(event.request)) || (event.request.mode === 'navigate' ? await caches.match('./index.html') : null) || Response.error()));
 });

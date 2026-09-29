@@ -4,6 +4,8 @@
    ============================================================ */
 (() => {
   'use strict';
+  if (window.__thcode_server_initialized) return;
+  window.__thcode_server_initialized = true;
   const W = window.ThcodeTest;
   if (!W) return;
   const { Term, Panel, Page, Store, toast, dPrompt, esc, icon } = W;
@@ -29,18 +31,18 @@
     },
 
     async connect(url, token) {
-      this.status = 'connecting'; this.render();
+      this.status = 'connecting'; if (Panel.current === 'server') this.render();
       try {
         this.url = url.replace(/\/$/, ''); this.token = token;
         const h = await (await fetch(this.url + '/api/health')).json();
         if (!h.status) throw new Error('Resposta de health inválida');
         this.status = 'connected'; this.retry = 0; this.save();
         toast('Backend conectado: ' + (h.backend || 'ok'), 'check');
-        this.render();
+        if (Panel.current === 'server') this.render();
       } catch (e) {
         this.status = 'disconnected';
-        this.render();
-        Panel.setHead('Servidor', 'Desconectado');
+        if (Panel.current === 'server') this.render();
+        if (Panel.current === 'server') Panel.setHead('Servidor', 'Desconectado');
         toast('Falha ao conectar: ' + e.message.slice(0, 80), 'close');
       }
     },

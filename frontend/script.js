@@ -1322,6 +1322,7 @@ const Panel = {
     else if (id === 'terminal') Term.render($('#panelBody'), false);
   },
   init() {
+    $('#panelClose').onclick = () => this.close();
     $$('#rail .rail-btn').forEach(b => b.onclick = () => { vibrate(6); this.toggle(b.dataset.panel); });
     // fecha painel ao tocar no editor (mobile)
     $('#editorArea').addEventListener('pointerdown', () => { if (this.isOpen() && window.innerWidth < 700) this.close(); });
@@ -2331,6 +2332,8 @@ function zoomEditor(delta) {
 const Page = {
   stack: [], current: null,
   open(id, title, render, searchable = true) {
+    clearTimeout(this.closeTimer);
+    if (this.current === id) this.stack.pop();
     this.stack.push({ id, title, render, searchable });
     this.show();
   },
@@ -2358,7 +2361,8 @@ const Page = {
     this.current = null;
     const r = $('#pageRoot');
     r.classList.add('closing');
-    setTimeout(() => { r.classList.add('hidden'); r.classList.remove('closing'); }, 180);
+    clearTimeout(this.closeTimer);
+    this.closeTimer = setTimeout(() => { r.classList.add('hidden'); r.classList.remove('closing'); }, 180);
   },
   init() {
     $('#pageBack').onclick = () => this.back();
@@ -2959,8 +2963,8 @@ function applySettingsJson(text) {
 const Drawer = {
   sel: 'files',
   isOpen() { return $('#drawer').classList.contains('open'); },
-  open() { $('#drawer').classList.remove('hidden'); $('#scrim').classList.remove('hidden'); requestAnimationFrame(() => { $('#drawer').classList.add('open'); $('#scrim').classList.add('show'); }); },
-  close() { $('#drawer').classList.remove('open'); $('#scrim').classList.remove('show'); setTimeout(() => { $('#drawer').classList.add('hidden'); if ($('#fileMenu').classList.contains('hidden')) $('#scrim').classList.add('hidden'); }, 260); },
+  open() { clearTimeout(this.closeTimer); $('#drawer').classList.remove('hidden'); $('#scrim').classList.remove('hidden'); requestAnimationFrame(() => { $('#drawer').classList.add('open'); $('#scrim').classList.add('show'); }); },
+  close() { clearTimeout(this.closeTimer); $('#drawer').classList.remove('open'); $('#scrim').classList.remove('show'); this.closeTimer = setTimeout(() => { $('#drawer').classList.add('hidden'); if ($('#fileMenu').classList.contains('hidden')) $('#scrim').classList.add('hidden'); }, 260); },
   render() {
     const body = $('#drawerBody');
     const appIcon = APP_ICONS.find(x => x.id === State.appIcon) || APP_ICONS[0];
