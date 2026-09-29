@@ -1,11 +1,11 @@
 {
   "name": "thcode",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "Thcode \u2014 editor de c\u00f3digo mobile open-source (HTML5 + CSS3 + JS puro)",
   "type": "module",
   "scripts": {
     "start": "node server.js",
-    "test": "node --check script.js && node tests/smoke.mjs",
+    "test": "node --check script.js && node --check js/thcode-pro.js && node --check js/thcode-server.js && node --check js/thcode-promo.js && node tests/smoke.mjs",
     "lint": "node --check script.js"
   },
   "license": "MIT",

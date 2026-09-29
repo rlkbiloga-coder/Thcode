@@ -696,6 +696,20 @@
       } else if (detectLang(p) === 'html') { W.Preview.open(p); tPrint([['g', 'preview real aberto']]); }
       else tPrint([['y', 'execução real disponível para .js e .html']]);
     },
+
+    /* ---- honestidade: comandos que exigem runtime real ---- */
+    apk: async () => tPrint([['y', 'apk não disponível: sem backend conectado.'], ['d', 'Conecte um backend (painel Servidor) para terminal real com pacotes reais.'], ['d', 'Alternativa real sem backend: pkg add <pacote> (baixa do npm via jsDelivr)']]),
+    npm: async () => tPrint([['y', 'npm não disponível sem backend conectado.'], ['d', 'Real: conecte o backend (Servidor → Conectar) e use o Terminal REAL (PTY).']]),
+    node: async () => tPrint([['y', 'Node.js não disponível sem backend.'], ['d', 'Real: Servidor → Conectar → Terminal REAL, ou "runreal <arquivo.js>" (execução local real do VFS)']]),
+    python: async () => tPrint([['y', 'Python não disponível sem backend.'], ['d', 'Real: Servidor → Conectar → Terminal REAL (PTY) e rode python3 lá.']]),
+    run: async args => {
+      const p = args[0] ? Term.resolve(args[0]) : T.active;
+      if (!p || !fExists(p)) return tPrint([['r', 'Nenhum arquivo. Uso: run <arquivo>']]);
+      const lang = detectLang(p);
+      if (lang === 'html') { W.Preview.open(p); return tPrint([['g', 'preview real aberto: ' + baseName(p)]]); }
+      if (lang === 'js') { tPrint([['c', '▶ execução real (sandbox VFS): ' + baseName(p)]]); Runner.runJS(p).forEach(([k, t]) => Term.print(k, t)); return tPrint([['g', '✓ concluído']]); }
+      tPrint([['y', 'Execução de ' + LANGS[lang].name + ' requer backend (Servidor → Conectar).']]);
+    },
     /* ---- vault ---- */
     vault: async args => {
       const sub = args[0];

@@ -1,62 +1,60 @@
-# Thcode — Mobile IDE
+# Thcode — IDE mobile real (frontend PWA + backend)
 
-Editor de código mobile **open-source (MIT)**, feito com **HTML5 + CSS3 + JavaScript puro** — sem frameworks.
+Frontend: https://rlkbiloga-coder.github.io/Thcode/ (PWA, offline, funciona sem backend em modo local)
+Backend: terminal PTY real, filesystem real, execução real, Git real, GitHub real, SFTP real, IA real.
 
-![Thcode](assets/logo.svg)
+## Estrutura
 
-## ✨ Destaques
+```
+frontend/   PWA (HTML/CSS/JS puro) — editor, VFS local (localStorage), terminal local honesto
+backend/    API REST + WebSocket reais (Node 18+, Express, ws, node-pty, ssh2)
+docs/       ARCHITECTURE, SECURITY, API, DEPLOY, PLUGIN
+Dockerfile  backend em contêiner
+docker-compose.yml  backend + frontend nginx
+```
 
-- 📝 Editor com abas, undo/redo, autocomplete, minimapa e 14 temas
-- 🐧 Terminal **bash real**: variáveis, pipes, `>`/`>>`, `&&`, globs, `$(...)`, `curl`
-- 🧩 **43 plugins** com páginas de detalhes, ⚙ configurações e instalação animada
-- 🌐 Preview browser: `localhost:8158`, Devices, Disable Cache, Open in Browser
-- 🤖 IA offline + **API real (OpenRouter)** com sua chave, GitHub API real
-- 👤 Contas locais, Serviços, Métricas, Diagnóstico, Descobrir, Termos/Privacidade
-- 🔌 Crie seus próprios plugins (arquivo / URL / modelo) — [API](docs/PLUGIN_API.md)
-- 📲 PWA instalável, funciona offline
+![Thcode Pro](frontend/assets/promo-thcode-pro.jpg)
 
-## 🚀 Rodar
+## Regra de honestidade
+
+Se um recurso exige backend/runtime e ele não está conectado, o Thcode mostra
+"não disponível" — nunca simula sucesso. Comandos locais falsos (apk/npm/node/python
+sem backend) respondem com o motivo real e como habilitar.
+
+## Backend em 60 segundos
 
 ```bash
-npm start        # serve em http://localhost:8158
-# ou abra index.html direto no navegador
+cd backend
+cp .env.example .env
+# edite .env: THCODE_API_TOKEN (gere com o comando do arquivo), GITHUB_TOKEN, GROQ_API_KEY etc.
+npm install
+npm start          # http://localhost:8080
+npm test           # 19 testes de integração reais (fs, git, run, WS, segurança)
 ```
 
-## ✅ Testar
+No app: painel *Servidor* → Conectar → URL + token. A partir daí:
+
+* Terminal REAL (xterm.js + WebSocket + PTY node-pty)
+* Execução real de .js/.py/.sh (verifica runtime antes; "Runtime não instalado" se faltar)
+* Git real (init/status/commit/clone/push/pull/diff/log)
+* GitHub real (token no backend; sem token → 503 honesto)
+* SFTP/SSH real (erros reais: Connection refused, Authentication failed…)
+* IA real (chaves só no .env do backend)
+
+## Docker
 
 ```bash
-npm test         # node --check + 50 checagens jsdom
+THCODE_API_TOKEN=<token> docker compose up -d
+# frontend: http://localhost:3000 | backend: http://localhost:8080
 ```
 
-## 📁 Estrutura
+## Deploy
 
-```
-index.html  style.css  script.js   → app (funciona sozinho, sem build)
-manifest.json  sw.js  assets/      → PWA
-tests/smoke.mjs                    → suíte de testes
-docs/                              → PLUGIN_API, ARCHITECTURE, PRIVACY, TERMS…
-.github/                           → CI, templates, CODEOWNERS
-```
+Ver docs/DEPLOY.md (Railway, Render, Fly.io, VPS). O frontend vai pro GitHub Pages
+via workflow (.github/workflows/pages.yml) — sem fingir backend no Pages.
 
-## 📄 Legal e Proteção
+## APK Android
 
-- [Termos de Uso](docs/TERMS.md) · [Política de Privacidade](docs/PRIVACY.md) (LGPD, 100% local)
-- [Código de Conduta](CODE_OF_CONDUCT.md) · [Segurança](SECURITY.md)
-- Denúncia de vulnerabilidade: aba *Security* do repositório (relatório privado)
-
-> Baseado nos fluxos do [Acode](https://github.com/Acode-Foundation/Acode) (GPL-3.0).
-> O código do Thcode é original e licenciado em **MIT** — veja [LICENSE](LICENSE).
-
-## 🔒 Privado?
-
-Este repositório pode ser **privado**: todo o código roda no cliente, sem backend.
-Para contribuir, veja [CONTRIBUTING](CONTRIBUTING.md). Para proteger a `main`,
-siga [docs/BRANCH_PROTECTION](docs/BRANCH_PROTECTION.md).
-
-## Thcode PRO (v2.1.0)
-- *Git/GitHub real* — clone, commit e push via API REST
-- *Vault* — tokens com AES-256-GCM no dispositivo
-- *Terminal real* — curl, wget, pkg (npm+jsDelivr), runreal (JS real)
-- *Internet* — fetch com proxy CORS, busca web
-- *IA real* — Groq, OpenRouter, Ollama local
-- *Android Bridge* — share, arquivos, bateria, install PWA
+PWA instalável direto do navegador (Adicionar à tela inicial). Para APK:
+abra https://www.pwabuilder.com → cole a URL do site → Package for Stores → Android.
+(docs/DEPLOY.md tem o passo a passo completo.)
