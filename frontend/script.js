@@ -21,7 +21,7 @@ const pad2 = n => String(n).padStart(2, '0');
 const fmtTime = (d = new Date()) => `${pad2(d.getHours())}:${pad2(d.getMinutes())}:${pad2(d.getSeconds())}`;
 const fmtSize = b => b < 1024 ? b + ' B' : b < 1048576 ? (b / 1024).toFixed(1) + ' KB' : (b / 1048576).toFixed(1) + ' MB';
 const icon = (n, st = '') => `<svg ${st ? `style="${st}"` : ''} aria-hidden="true"><use href="#i-${n}"/></svg>`;
-const APP_VER = 'v2.0.0 (2000)';
+const APP_VER = 'v2.4.0 Studio';
 const ACODE_BASE = 'v1.13.5 (1011)';
 const THCODE_REPO = 'https://github.com/rlkbiloga-coder/Thcode';
 
@@ -479,11 +479,16 @@ function highlightCode(code, L) {
 function highlightHTML(code) {
   let out = '', i = 0; const n = code.length;
   const escTag = tag => {
-    let e = esc(tag);
-    e = e.replace(/(&lt;\/?)([\w-]+)/, '$1<span class="tok-v">$2</span>');
-    e = e.replace(/([\w-]+)(=)("[^"\n]*"|'[^'\n]*'|&quot;.*?&quot;|&#39;.*?&#39;)/g, '<span class="tok-a">$1</span>$2<span class="tok-s">$3</span>');
-    e = e.replace(/(\/?&gt;)/g, '<span class="tok-p">$1</span>').replace(/(&lt;\/?)/g, '<span class="tok-p">$1</span>');
-    return `<span class="tok-o">${e}</span>`;
+    const pattern = /(<\/?)([\w-]+)|([\w:-]+)(\s*=\s*)("[^"\n]*"|'[^'\n]*')|(\/?>)/g;
+    let result = '', cursor = 0, match;
+    while ((match = pattern.exec(tag))) {
+      result += esc(tag.slice(cursor, match.index));
+      if (match[1]) result += `<span class="tok-p">${esc(match[1])}</span><span class="tok-v">${esc(match[2])}</span>`;
+      else if (match[3]) result += `<span class="tok-a">${esc(match[3])}</span>${esc(match[4])}<span class="tok-s">${esc(match[5])}</span>`;
+      else result += `<span class="tok-p">${esc(match[6])}</span>`;
+      cursor = pattern.lastIndex;
+    }
+    return `<span class="tok-o">${result + esc(tag.slice(cursor))}</span>`;
   };
   while (i < n) {
     if (code.startsWith('<!--', i)) { const j = code.indexOf('-->', i + 4); const k = j < 0 ? n : j + 3; out += `<span class="tok-c">${esc(code.slice(i, k))}</span>`; i = k; continue; }
@@ -1754,7 +1759,7 @@ const Term = {
     ];
   },
   render(container, inPage) {
-    if (!inPage) Panel.setHead('Terminal', 'Alpine Linux', [
+    if (!inPage) Panel.setHead('Terminal', 'VFS local', [
       { ic: 'copy', t: 'Copiar saída', fn: () => { copyText(this.lines.map(l => l[1]).join('\n')); toast('Saída copiada', 'copy'); } },
       { ic: 'close', t: 'Limpar', fn: () => { this.lines = []; this.render(container, inPage); } }
     ]);
