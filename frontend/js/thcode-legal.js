@@ -109,3 +109,25 @@
   if (!termsGate()) cookieBanner();
   console.log('[legal] termos:', Legal.acceptedTerms() ? 'aceitos ' + (Legal.state.termsTs || '') : 'pendentes');
 })();
+
+/* ---------- Stripe: ativação REAL do PRO após pagamento ---------- */
+(() => {
+  const q = new URLSearchParams(location.search);
+  if (q.get('stripe') !== 'success' || !q.get('session_id')) return;
+  const srv = window.ThcodeServer;
+  const tryVerify = () => {
+    if (!srv || !srv.isUp()) return setTimeout(tryVerify, 1200);
+    srv.api('GET', '/api/billing/verify?session_id=' + encodeURIComponent(q.get('session_id')))
+      .then(r => {
+        if (r.paid) {
+          const W = window.ThcodeTest;
+          if (W && W.State) { W.State.pro = true; W.Store.save(); }
+          localStorage.setItem('thcode.pro.v1', JSON.stringify({ via: 'stripe', ts: new Date().toISOString() }));
+          alert('Thcode PRO ativado! Pagamento confirmado pelo Stripe.');
+        } else alert('Pagamento ainda ' + r.status + ' — tente de novo em instantes.');
+        history.replaceState(null, '', location.pathname);
+      })
+      .catch(e => { alert('Erro real na verificação: ' + e.message.slice(0, 80)); history.replaceState(null, '', location.pathname); });
+  };
+  setTimeout(tryVerify, 800);
+})();

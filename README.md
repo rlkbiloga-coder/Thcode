@@ -48,6 +48,11 @@ THCODE_API_TOKEN=<token> docker compose up -d
 # frontend: http://localhost:3000 | backend: http://localhost:8080
 ```
 
+## Deploy rápido do backend
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/github?repo=https%3A%2F%2Fgithub.com%2Frlkbiloga-coder%2FThcode&rootDir=backend)
+
+Render: New → Blueprint (usa render.yaml) • Fly: `fly launch` (usa fly.toml) • Docker: `docker compose up -d`
+
 ## Deploy
 
 Ver docs/DEPLOY.md (Railway, Render, Fly.io, VPS). O frontend vai pro GitHub Pages

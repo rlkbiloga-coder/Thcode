@@ -158,6 +158,42 @@ app.get('/api/analytics', auth, wrap(async (r, w) => {
   w.json({ total: analyticsEvents.length, counts, recent: analyticsEvents.slice(-50) });
 }));
 
+
+/* ============ STRIPE (pagamento REAL via API oficial) ============ */
+async function stripe(path, formObj) {
+  const key = process.env.STRIPE_SECRET_KEY;
+  if (!key) { const e = new Error('Stripe não configurado: defina STRIPE_SECRET_KEY no backend'); e.status = 503; throw e; }
+  const body = new URLSearchParams(formObj).toString();
+  const r = await fetch('https://api.stripe.com/v1/' + path, {
+    method: 'POST',
+    headers: { Authorization: 'Bearer ' + key, 'Content-Type': 'application/x-www-form-urlencoded' },
+    body
+  });
+  const t = await r.text();
+  if (!r.ok) { const e = new Error('Stripe ' + r.status + ': ' + t.slice(0, 200)); e.status = 502; throw e; }
+  return JSON.parse(t);
+}
+app.post('/api/billing/checkout', auth, wrap(async (r, w) => {
+  const origin = (r.body.origin || 'https://rlkbiloga-coder.github.io').replace(/[^a-zA-Z0-9:/.\-]/g, '');
+  const sess = await stripe('checkout/sessions', {
+    mode: 'payment',
+    'line_items[0][price_data][currency]': 'brl',
+    'line_items[0][price_data][product_data][name]': 'Thcode PRO',
+    'line_items[0][price_data][unit_amount]': '1990',
+    'line_items[0][quantity]': '1',
+    success_url: origin + '/?stripe=success&session={CHECKOUT_SESSION_ID}',
+    cancel_url: origin + '/?stripe=cancel'
+  });
+  log('INFO', 'billing', 'checkout session ' + sess.id);
+  w.json({ id: sess.id, url: sess.url });
+}));
+app.get('/api/billing/verify', auth, wrap(async (r, w) => {
+  const sess = await stripe('checkout/sessions/' + String(r.query.session_id || '').replace(/[^a-zA-Z0-9_/\-]/g, ''), { 'expand[0]': 'payment_intent' });
+  const paid = sess.payment_status === 'paid';
+  log('INFO', 'billing', 'verify ' + (paid ? 'PAGO' : 'pendente'));
+  w.json({ paid, status: sess.payment_status });
+}));
+
 /* ============ 404 ============ */
 app.use((r, w) => w.status(404).json({ error: 'Rota não existe: ' + r.path }));
 

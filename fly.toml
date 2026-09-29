@@ -1,0 +1,13 @@
+app = "thcode-backend"
+primary_region = "gru"
+[build]
+  builder = "paketobuildpacks/builder-jammy-base"
+[env]
+  PORT = "8080"
+  WORKSPACE_DIR = "/data/workspace"
+[[mounts]]
+  source = "thcode_ws"
+  destination = "/data/workspace"
+[http_service]
+  internal_port = 8080
+  force_https = true

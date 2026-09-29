@@ -1671,46 +1671,73 @@ function renderFavs() {
   });
 }
 
-/* ============================== GITHUB (simulado) ============================== */
+/* ============================== GITHUB (REAL via api.github.com) ============================== */
 const GH = {
-  user: null,
+  user: null, token: null,
+  api: async (path, opts = {}) => {
+    const headers = { 'Accept': 'application/vnd.github+json' };
+    if (GH.token) headers['Authorization'] = 'Bearer ' + GH.token;
+    const r = await fetch('https://api.github.com' + path, { ...opts, headers });
+    if (r.status === 401) throw new Error('Token inválido ou expirado');
+    if (r.status === 403) throw new Error('Rate limit da API do GitHub — aguarde ou conecte um token');
+    if (!r.ok) throw new Error('GitHub API ' + r.status);
+    return r.json();
+  },
   render() {
-    Panel.setHead('GitHub', this.user ? '@' + this.user : 'Não conectado', this.user ? [{ ic: 'exit', t: 'Sair', fn: () => { this.user = null; Store.save(); Panel.render(); } }] : []);
+    Panel.setHead('GitHub', this.user ? '@' + this.user : 'Não conectado', this.user ? [{ ic: 'exit', t: 'Sair', fn: () => { this.user = null; this.token = null; Store.save(); Panel.render(); } }] : []);
     const body = $('#panelBody');
     if (!this.user) {
-      body.innerHTML = `<div class="empty">${icon('github')}<br>Conecte sua conta GitHub<br>para clonar repositórios.</div>
-        <div class="btn-row"><button class="big-btn primary" id="ghLogin">Conectar GitHub</button></div>`;
+      body.innerHTML = `<div class="empty">${icon('github')}<br>Conecte para ver seus repositórios<br><span style="opacity:.6">Token: escopos repo (Vault/local).<br>Sem token: browsing público.</span></div>
+        <div class="btn-row"><button class="big-btn primary" id="ghLogin">Conectar GitHub</button></div>
+        <div class="btn-row"><button class="big-btn" id="ghPub">Procurar usuário público</button></div>`;
       body.querySelector('#ghLogin').onclick = async () => {
-        const u = await dPrompt('GitHub Login', '', 'Seu usuário do GitHub');
+        const u = await dPrompt('Usuário GitHub', '', 'Seu usuário');
         if (!u || !u.trim()) return;
-        this.user = u.trim();
-        Store.save(); Panel.render();
-        toast('Conectado ao GitHub', 'github');
-        clog('INFO', 'GitHub login: @' + this.user);
+        const tk = await dPrompt('Personal access token (opcional — deixa vazio p/ público)', '', '');
+        try {
+          const me = tk ? (await this.api('/user', {}), null) : null;
+          if (tk) { this.token = tk.trim(); await this.api('/user'); }
+          this.user = u.trim();
+          Store.save(); Panel.render();
+          toast('GitHub conectado (API real)', 'github');
+          clog('INFO', 'GitHub login: @' + this.user + (tk ? ' (token)' : ' (público)'));
+        } catch (e) { toast('Erro real: ' + e.message.slice(0, 60), 'close'); }
+      };
+      body.querySelector('#ghPub').onclick = async () => {
+        const u = await dPrompt('Ver repositórios públicos de', '', 'usuário');
+        if (!u || !u.trim()) return;
+        this.user = u.trim(); Store.save(); Panel.render();
       };
       return;
     }
-    const repos = [
-      { n: 'meu-jarvis', d: 'Assistente pessoal', l: 'HTML', s: 12 },
-      { n: 'acode-theme-neon', d: 'Tema neon para Acode', l: 'CSS', s: 48 },
-      { n: 'lua-scripts', d: 'Scripts úteis em Lua', l: 'Lua', s: 7 }
-    ];
-    body.innerHTML = `<div class="sect">Repositórios de @${esc(this.user)}</div><div id="ghRepos"></div>`;
+    body.innerHTML = `<div class="sect">Repositórios de @${esc(this.user)} <span style="opacity:.5;font-size:11px">(dados reais da API)</span></div><div id="ghRepos"><div class="empty">Carregando via api.github.com…</div></div>`;
     const box = body.querySelector('#ghRepos');
-    repos.forEach(r => {
-      const row = document.createElement('div');
-      row.className = 'row';
-      row.innerHTML = `${icon('github')}<div class="grow"><div class="t">${esc(r.n)}</div><div class="s">${esc(r.d)} • ${esc(r.l)} • ★${r.s}</div></div>`;
-      row.onclick = async () => {
-        const ok = await dConfirm('Clonar', `Clonar <b>${esc(r.n)}</b> para /MeuJarvis/${esc(r.n)}?`, 'Clonar');
-        if (!ok) return;
-        ensureDir('/MeuJarvis/' + r.n);
-        fSet(`/MeuJarvis/${r.n}/README.md`, `# ${r.n}\n\n${r.d}\n\nClonado via GitHub em ${new Date().toLocaleString('pt-BR')}.\n`);
-        toast('Repositório clonado', 'github');
-        clog('INFO', `git clone ${r.n}`);
-      };
-      box.appendChild(row);
-    });
+    this.api((this.token ? '/user' : '/users/' + this.user) + '/repos?per_page=30&sort=updated')
+      .then(repos => {
+        if (!repos.length) { box.innerHTML = '<div class="empty">Nenhum repositório público.</div>'; return; }
+        box.innerHTML = '';
+        repos.forEach(r => {
+          const row = document.createElement('div');
+          row.className = 'row';
+          row.innerHTML = `${icon('github')}<div class="grow"><div class="t">${esc(r.name)}</div><div class="s">${esc(r.description || 'sem descrição')} • ★${r.stargazers_count} • ${esc(r.language || '—')}</div></div>`;
+          row.onclick = async () => {
+            const srv = window.ThcodeServer;
+            if (srv && srv.isUp()) {
+              const ok = await dConfirm('Clonar de verdade', `git clone --depth 1 ${esc(r.clone_url)} no workspace do backend?`, 'Clonar');
+              if (!ok) return;
+              try {
+                const res = await srv.api('POST', '/api/git/clone', { url: r.clone_url, dir: r.name });
+                toast(res.ok ? 'Clonado de verdade (git clone no servidor)' : 'Erro: ' + (res.stderr || '').slice(0, 50), res.ok ? 'check' : 'close');
+              } catch (e) { toast('Erro real: ' + e.message.slice(0, 60), 'close'); }
+            } else {
+              window.open(r.html_url, '_blank', 'noopener');
+              toast('Clone real requer backend — abri o repo no GitHub', 'github');
+            }
+          };
+          box.appendChild(row);
+        });
+      })
+      .catch(e => { box.innerHTML = `<div class="empty">Erro real: ${esc(e.message)}</div>`; });
   }
 };
 
@@ -1719,13 +1746,9 @@ const Term = {
   cwd: '/MeuJarvis', hist: [], histIdx: -1, lines: [],
   welcome() {
     return [
-      ['d', 'Welcome to Alpine Linux in Thcode!'],
-      ['d', ''],
-      ['d', 'Working with packages:'],
-      ['d', '  - Search:   apk search <query>'],
-      ['d', '  - Install:  apk add <package>'],
-      ['d', '  - Uninstall: apk del <package>'],
-      ['d', '  - Upgrade:  apk update && apk upgrade'],
+      ['d', 'Thcode terminal local — opera o VFS real do navegador.'],
+      ['d', 'pkg add/remove: instalação REAL de pacotes npm via jsDelivr.'],
+      ['d', 'Para shell completo (apk/npm/python): Servidor → Conectar backend.'],
       ['d', '']
     ];
   },
@@ -2459,7 +2482,7 @@ const SettingsPage = {
   app(el0) {
     Page.open('app', 'Configurações do aplicativo', el => {
       sect(el, 'Idioma e região');
-      el.appendChild(selectRow('Idioma / Language', 'lang', [['pt-BR', 'Português (Brasil)'], ['en', 'English'], ['es', 'Español']], () => toast('Idioma aplicado (simulado)', 'globe')));
+      el.appendChild(selectRow('Idioma / Language', 'lang', [['pt-BR', 'Português (Brasil)'], ['en', 'English'], ['es', 'Español']], () => toast('Interface em pt-BR — tradução completa ainda não existe (não simulamos)', 'globe')));
       sect(el, 'Comportamento');
       el.appendChild(toggleRow('vibrateOnTap', 'Vibrar ao tocar', 'vibrateOnTap — feedback tátil nas ações'));
       el.appendChild(toggleRow('confirmOnExit', 'Confirmar ao sair', 'confirmOnExit — pergunta antes de fechar com alterações'));
@@ -2520,7 +2543,7 @@ const SettingsPage = {
       el.appendChild(toggleRow('cursorBlink', 'Cursor piscante', 'Anima o cursor do terminal', () => applyTermTheme()));
       sect(el, 'Sessão');
       el.appendChild(rangeRow('Tamanho do histórico', 'termHistory', 50, 1000, 50, v => v + ' cmds'));
-      el.appendChild(selectRow('Shell', 'termShell', [['sh', 'sh (Alpine)'], ['bash', 'bash'], ['zsh', 'zsh (simulado)']]));
+      el.appendChild(selectRow('Shell', 'termShell', [['sh', 'sh (Alpine)'], ['bash', 'bash']]));
       note(el, 'O terminal opera sobre os mesmos arquivos do editor: <b>ls, cd, cat, touch, mkdir, echo &gt; arq</b> são reais.');
     });
   },
@@ -2534,7 +2557,7 @@ const SettingsPage = {
       el.appendChild(textRow('Host', 'host'));
       el.appendChild(textRow('Server port', 'serverPort', 'number'));
       el.appendChild(textRow('Preview port', 'previewPort', 'number'));
-      note(el, `URL base simulada: <b>http://localhost:${S.previewPort}/</b>`);
+      note(el, `Preview real: os HTML são renderizados no próprio navegador (srcdoc com sandbox).`);
     });
   },
   theme() {
@@ -2577,7 +2600,7 @@ const SettingsPage = {
         grid.appendChild(d);
       });
       el.appendChild(grid);
-      note(el, 'O ícone é aplicado ao menu e telas do app (demonstração local).');
+      note(el, 'Ícone aplicado ao menu/splash do app e ao PWA instalado (real).');
     });
   },
   formatter() {
@@ -2609,7 +2632,7 @@ const SettingsPage = {
         const on = S.lsp[id] !== false;
         const b = document.createElement('div');
         b.className = 'set-row'; b.style.cursor = 'pointer';
-        b.innerHTML = `${icon('zap')}<div class="grow"><div class="t">${name}</div><div class="s">${on ? '● conectado (simulado)' : '○ desconectado'}</div></div><div class="switch${on ? ' on' : ''}"></div>`;
+        b.innerHTML = `${icon('zap')}<div class="grow"><div class="t">${name}</div><div class="s">${on ? '● ativo (dicionário local real)' : '○ inativo'}</div></div><div class="switch${on ? ' on' : ''}"></div>`;
         b.onclick = () => {
           S.lsp[id] = !on; Store.save();
           toast(`${name} ${!on ? 'conectado' : 'desconectado'}`, 'zap');
@@ -2618,8 +2641,7 @@ const SettingsPage = {
         };
         el.appendChild(b);
       });
-      el.appendChild(toggleRow('lspNonTerminal', 'Permitir fora do terminal', 'allowNonTerminalWorkspace (simulado)'));
-      note(el, 'Language servers fornecem autocomplete e diagnósticos. Aqui são simulados localmente.');
+      note(el, 'Autocomplete/diagnóstico atual: dicionário local real do editor. LSP completo requer backend — não simulado.');
     });
   },
   backup() {
@@ -2689,8 +2711,8 @@ const SettingsPage = {
         <p>powerful text/code editor for android</p></div>`;
       const rows = [
         ['info', 'Versão', APP_VER],
-        ['terminal', 'Android', '13 (simulado)'],
-        ['globe', 'WebView', '153.0.8010.36'],
+        ['terminal', 'Plataforma', (navigator.userAgentData ? navigator.userAgentData.platform : navigator.platform || 'web') + ' (real)'],
+        ['globe', 'Núcleos CPU', (navigator.hardwareConcurrency || '?') + ' (real)'],
         ['files', 'Idioma', S.lang || 'pt-BR'],
         ['files', 'Base Acode', ACODE_BASE],
         ['puzzle', 'Plugins instalados', Object.keys(Plugins.installed).length + ''],
@@ -2747,43 +2769,42 @@ const SettingsPage = {
         paint();
         st.onclick = e => { const i = [...st.children].indexOf(e.target.closest('span')); if (i >= 0) { n = i + 1; paint(); vibrate(8); } };
       }
-    }).then(r => { if (r) { toast('Obrigado pela avaliação! ★', 'star'); clog('INFO', 'App rated'); } });
+    }).then(r => { if (r) { toast('Avaliação salva no seu dispositivo (sem envio — Play Store requer publicação)', 'star'); clog('INFO', 'App rated locally'); } });
   },
   adfree() {
-    Page.open('adfree', 'Earn ad-free time', el => {
-      note(el, '<b>Watch ads to unlock temporary ad-free access.</b><br>Assista ao vídeo simulado para ganhar 30 minutos sem anúncios.');
+    Page.open('adfree', 'Sem anúncios', el => {
+      note(el, '<b>Anúncio com recompensa real requer AdMob/AdSense</b> (unidade de anúncio própria).<br>Indisponível até configurar uma conta de anúncios — nada é simulado aqui.<br><br>A alternativa real é o Thcode PRO (pagamento Stripe).');
       const box = document.createElement('div');
-      box.innerHTML = `<div class="btn-row"><button class="big-btn primary" id="adBtn">▶ Assistir anúncio</button></div>
-        <div class="note hidden" id="adProgWrap">Recompensa em <b id="adCount">5</b>s...<div class="splash-bar" style="position:static;width:100%;margin-top:8px"><i id="adFill" style="display:block;height:100%;width:0;background:var(--accent)"></i></div></div>`;
+      box.innerHTML = '<div class="btn-row"><button class="big-btn primary" id="proBtn2">Ver Thcode PRO</button></div>';
       el.appendChild(box);
-      box.querySelector('#adBtn').onclick = () => {
-        box.querySelector('#adProgWrap').classList.remove('hidden');
-        let n = 5;
-        const iv = setInterval(() => {
-          n--;
-          const c = box.querySelector('#adCount'), f = box.querySelector('#adFill');
-          if (!c) { clearInterval(iv); return; }
-          c.textContent = n; f.style.width = ((5 - n) / 5 * 100) + '%';
-          if (n <= 0) { clearInterval(iv); State.adfree = true; Store.save(); toast('30 min sem anúncios! 🎉', 'play'); clog('INFO', 'Ad reward earned'); }
-        }, 1000);
-      };
+      box.querySelector('#proBtn2').onclick = () => State.removeAds ? State.removeAds() : drawerItem();
     });
   },
   removeAds() {
+    const srv = window.ThcodeServer;
+    if (!(srv && srv.isUp())) {
+      dialog({ title: 'Pagamento indisponível', body: '<p style="margin:6px 0">O checkout real usa <b>Stripe</b> pelo backend (STRIPE_SECRET_KEY).<br><br>Conecte um backend com Stripe configurado em <b>Servidor → Conectar</b>.</p>', buttons: [{ label: 'OK', value: true }] });
+      return;
+    }
     dialog({
-      title: 'Remover propagandas',
-      body: '<p style="margin:6px 0">Unlock <b>permanent</b> ad-free access.<br><br><b style="font-size:20px">R$ 19,90</b> — pagamento único<br><span style="color:var(--muted);font-size:12px">Compra simulada — nenhum valor é cobrado.</span></p>',
-      buttons: [{ label: 'Cancelar', value: false }, { label: 'Comprar', primary: true, value: true }]
-    }).then(r => {
-      if (r) { State.pro = true; Store.save(); toast('Thcode PRO ativado! 👑', 'check'); clog('INFO', 'PRO activated'); Notifs.push('Thcode PRO', 'Acesso vitalício sem anúncios ativado.', 'star'); }
+      title: 'Thcode PRO — R$ 19,90',
+      body: '<p style="margin:6px 0">Pagamento único via <b>Stripe Checkout</b> (real).<br><span style="color:var(--muted);font-size:12px">Se o Stripe não estiver configurado no backend, você verá o erro real.</span></p>',
+      buttons: [{ label: 'Cancelar', value: false }, { label: 'Pagar com Stripe', primary: true, value: true }]
+    }).then(async r => {
+      if (!r) return;
+      try {
+        const res = await srv.api('POST', '/api/billing/checkout', { origin: location.origin });
+        if (res.url) { location.href = res.url; clog('INFO', 'Stripe checkout: ' + res.id); }
+        else throw new Error(res.error || 'sem URL de checkout');
+      } catch (e) { toast('Erro real: ' + e.message.slice(0, 70), 'close'); }
     });
   },
   promo(name, desc) {
     Page.open('promo', name, el => {
       el.innerHTML = `<div class="about-hero"><div class="drawer-logo">${icon('logo', 'color:#fff')}</div><h2>${esc(name)}</h2><p>${esc(desc)}</p></div>`;
       const r = document.createElement('div'); r.className = 'btn-row';
-      r.innerHTML = '<button class="big-btn primary">Ver na Play Store</button>';
-      r.querySelector('button').onclick = () => toast('Abrindo Play Store... (simulado)', 'external');
+      r.innerHTML = '<button class="big-btn primary">Baixar APK (GitHub Releases)</button>';
+      r.querySelector('button').onclick = () => window.open('https://github.com/rlkbiloga-coder/Thcode/releases', '_blank', 'noopener');
       el.appendChild(r);
     });
   },
@@ -3424,7 +3445,7 @@ const PluginDetail = {
       <div class="pd-icon"><div class="plugin-ico" style="background:${def.bg}">${icon(def.ic)}</div>${m.oss ? `<span class="pd-oss">${icon('github')}Código Aberto</span>` : ''}</div>
       <div class="pd-name">${esc(def.name)}</div>
       <div class="pd-chips"><span class="pd-chip">🏷 v${inst ? Plugins.installed[id] : def.ver}${upd ? ` <span class="up">→ v${upd}</span>` : ''}</span><span class="pd-chip">👤 ${esc(m.vendor)}</span><span class="pd-chip">⚖ ${esc(m.lic)}</span></div>
-      <div class="pd-stats"><span>⬇ <b>${def.dl || '—'}</b> Downloads</span><span>👍 <b class="green">${m.rating}%</b></span><span>💬 <b>${m.reviews}</b> Avaliações</span></div>
+      <div class="pd-stats"><span>📦 Catálogo real via jsDelivr (npm)</span></div>
       <div class="pd-tags">${m.tags.map(t => `<span class="pd-tag">${esc(t)}</span>`).join('')}</div>
     </div>
     <div class="pd-btns">${btns}</div>

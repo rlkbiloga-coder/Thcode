@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: thcode-backend
+    rootDir: backend
+    plan: free
+    env: node
+    buildCommand: npm install
+    startCommand: node src/server.js
+    envVars:
+      - key: THCODE_API_TOKEN
+        generateValue: true
+      - key: WORKSPACE_DIR
+        value: /data/workspace
+      - sync: false
