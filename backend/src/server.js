@@ -18,7 +18,8 @@ import * as Run from './run.js';
 import { startTerminal, killTerminal, sessions, backendType } from './terminal.js';
 
 if (!config.workspace) throw new Error('WORKSPACE_DIR inválido');
-fss.mkdirSync(path.resolve(config.workspace), { recursive: true });
+try { fss.mkdirSync(path.resolve(config.workspace), { recursive: true }); }
+catch (e) { if (e.code === 'EACCES' || e.code === 'EPERM') { config.workspace = './workspace'; fss.mkdirSync(path.resolve(config.workspace), { recursive: true }); } else throw e; }
 
 const app = express();
 app.set('trust proxy', 1);
