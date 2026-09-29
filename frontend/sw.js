@@ -1,7 +1,7 @@
 /* Network-first application assets; offline fallback never returns HTML as JS. */
-const CACHE = 'thcode-studio-2.4.0';
-const CORE = ['./', './index.html', './style.css', './modern.css', './script.js',
- './js/thcode-pro.js', './js/thcode-server.js', './js/thcode-promo.js', './js/thcode-legal.js',
+const CACHE = 'thcode-studio-2.4.1';
+const CORE = ['./', './index.html', './style.css?v=2.4.1', './modern.css?v=2.4.1', './script.js?v=2.4.1',
+ './js/thcode-pro.js?v=2.4.1', './js/thcode-server.js?v=2.4.1', './js/thcode-promo.js?v=2.4.1', './js/thcode-legal.js?v=2.4.1',
  './manifest.json', './assets/logo.svg', './assets/icon-192.png', './assets/icon-512.png'];
 self.addEventListener('install', event => event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(CORE)).then(() => self.skipWaiting())));
 self.addEventListener('activate', event => event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key.startsWith('thcode-') && key !== CACHE).map(key => caches.delete(key)))).then(() => self.clients.claim())));

@@ -10,7 +10,7 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const html = readFileSync(join(root, 'index.html'), 'utf8');
 const script = readFileSync(join(root, 'script.js'), 'utf8').replace(/<\/script/gi, '<\\/script');
 
-const doc = html.replace('<script src="script.js"></script>', () => `<script>${script}</script>`);
+const doc = html.replace(/<script src="script\.js[^"]*"><\/script>/, () => `<script>${script}</script>`);
 const jsErrors = [];
 const dom = new JSDOM(doc, {
   url: 'http://localhost/',
