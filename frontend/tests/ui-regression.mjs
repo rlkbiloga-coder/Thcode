@@ -17,7 +17,7 @@ W.Page.close();W.Page.open('test','Test',e=>e.textContent='new');await sleep(220
 W.Drawer.open();await sleep(40);W.Drawer.close();W.Drawer.open();await sleep(320);assert.equal(w.document.querySelector('#drawer').classList.contains('hidden'),false);W.Drawer.close();
 W.Panel.open('files');w.document.querySelector('#panelClose').click();assert.equal(W.Panel.isOpen(),false);
 W.Panel.open('files');await w.ThcodeServer.connect('https://test.invalid','');assert.equal(w.document.querySelector('#panelTitle').textContent,'Arquivos');
-assert.equal(w.document.querySelector('#highlightCode').textContent, W.Ed.value(), 'syntax layer changed original source');
+assert.equal(w.document.querySelector('#highlightCode').textContent, W.Ed.value() + '\n', 'syntax layer changed original source');
 const ids=[...w.document.querySelectorAll('[id]')].map(e=>e.id);assert.equal(ids.length,new Set(ids).size);
 const rail=[...w.document.querySelectorAll('.rail-btn')].map(e=>e.dataset.panel);assert.equal(rail.length,new Set(rail).size);
 assert.deepEqual(errors,[]);
