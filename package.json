@@ -4,9 +4,13 @@
   "description": "Thcode — editor de código mobile open-source (HTML5 + CSS3 + JS puro)",
   "type": "module",
   "scripts": {
-    "start": "python3 -m http.server 8158",
+    "start": "node server.js",
     "test": "node --check script.js && node tests/smoke.mjs",
     "lint": "node --check script.js"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": { "jsdom": "^24.0.0" },
+  "dependencies": {
+    "jsdom": "^29.1.1"
+  }
 }

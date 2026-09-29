@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://rlkbiloga-coder.github.io/Thcode/sitemap.xml
