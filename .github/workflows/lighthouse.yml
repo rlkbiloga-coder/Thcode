@@ -1,0 +1,23 @@
+name: Lighthouse CI
+on:
+  schedule: [{ cron: "0 17 * * 1" }]   # segundas 14:00 BRT
+  workflow_dispatch:
+jobs:
+  lh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - run: npm i -g lighthouse
+      - name: Audit Pages
+        run: |
+          lighthouse https://rlkbiloga-coder.github.io/Thcode/ \
+            --only-categories=performance,accessibility,best-practices,seo \
+            --quiet --chrome-flags="--headless" --output=json --output-path=report.json
+      - name: Verifica orçamentos
+        run: |
+          node -e "const r=require('./report.json');const c=r.categories;const bad=Object.entries(c).filter(([k,v])=>v.score*100<70).map(([k])=>k);console.log(Object.entries(c).map(([k,v])=>k+': '+Math.round(v.score*100)).join(' | '));if(bad.length){console.log('ABAIXO DO ORÇAMENTO: '+bad.join(', '));process.exit(1)}"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: lighthouse, path: report.json }

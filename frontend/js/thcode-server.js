@@ -83,7 +83,7 @@
         <div class="sect">System Status (verificado de verdade)</div>
         <div id="srvHealth"></div>`;
       body.querySelector('#srvConnect').onclick = async () => {
-        const u = await dPrompt('URL do backend', 'Ex: https://seu-backend.onrender.com', this.url || 'https://');
+        const u = await dPrompt('URL do backend', 'Ex: https://seu-backend.onrender.com', this.url || 'https://thcode-backend.onrender.com');
         if (!u) return;
         const t = await dPrompt('Token da API (THCODE_API_TOKEN)', 'Fica no .env do backend', '');
         Server.connect(u, t || '');

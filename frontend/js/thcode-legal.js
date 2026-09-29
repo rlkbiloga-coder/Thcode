@@ -131,3 +131,20 @@
   };
   setTimeout(tryVerify, 800);
 })();
+
+/* ---------- ONBOARDING de primeira execução (real, 1x) ---------- */
+(() => {
+  if (localStorage.getItem('thcode.tour.v1')) return;
+  setTimeout(() => {
+    if (!confirm(`Bem-vindo ao Thcode! 🚀
+
+3 dicas rápidas:
+1. Paleta de comandos: Ctrl+Shift+P (tudo do editor)
+2. Terminal local opera o VFS de verdade; shell completo (apk/npm/python) conectando o backend em "Servidor"
+3. pkg add <pacote> instala de verdade via jsDelivr
+
+Quer ver a página Thcode Pro agora?`)) return Promise.resolve(false);
+    localStorage.setItem('thcode.tour.v1', new Date().toISOString());
+    if (window.ThcodePromo) window.ThcodePromo.open();
+  }, 2500);
+})();

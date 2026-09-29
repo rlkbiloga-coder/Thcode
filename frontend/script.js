@@ -2665,6 +2665,53 @@ const SettingsPage = {
         }, 450);
       };
       el.appendChild(r1);
+      /* ---- Backup REAL em Gist privado (api.github.com) ---- */
+      const rg = document.createElement('div'); rg.className = 'btn-row';
+      rg.innerHTML = '<button class="big-btn primary">Backup → Gist privado (GitHub)</button>';
+      rg.querySelector('button').onclick = async () => {
+        let tk = GH.token;
+        if (!tk) { const p = await dPrompt('GitHub token (scope gist)', 'Necessário para criar o Gist', ''); if (!p) return; tk = p.trim(); }
+        const files = {};
+        Object.entries(FS.files).forEach(([p, f]) => {
+          const name = p.replace(/^\/+/, '').replace(/\//g, '__') + '.txt';
+          files[name] = { content: (f && f.c) || '' };
+        });
+        if (!Object.keys(files).length) { toast('VFS vazio — nada para enviar', 'close'); return; }
+        try {
+          const r = await fetch('https://api.github.com/gists', {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + tk, 'Accept': 'application/vnd.github+json' },
+            body: JSON.stringify({ description: 'Thcode VFS backup ' + new Date().toISOString(), public: false, files })
+          });
+          if (!r.ok) throw new Error('GitHub ' + r.status + ' ' + (await r.text()).slice(0, 80));
+          const g = await r.json();
+          localStorage.setItem('thcode.gist.id', g.id);
+          toast('Gist privado criado (backup real)', 'backup');
+          clog('INFO', 'VFS backup → gist ' + g.id);
+        } catch (e) { toast('Erro real: ' + e.message.slice(0, 60), 'close'); }
+      };
+      el.appendChild(rg);
+      const rgr = document.createElement('div'); rgr.className = 'btn-row';
+      rgr.innerHTML = '<button class="big-btn">Restaurar do Gist (id salvo)</button>';
+      rgr.querySelector('button').onclick = async () => {
+        const gid = localStorage.getItem('thcode.gist.id') || (await dPrompt('ID do Gist', '', ''));
+        if (!gid) return;
+        let tk = GH.token;
+        if (!tk) { const p = await dPrompt('GitHub token', '', ''); if (!p) return; tk = p.trim(); }
+        try {
+          const r = await fetch('https://api.github.com/gists/' + encodeURIComponent(gid), { headers: { 'Authorization': 'Bearer ' + tk } });
+          if (!r.ok) throw new Error('GitHub ' + r.status);
+          const g = await r.json();
+          let n = 0;
+          Object.entries(g.files).forEach(([name, f]) => {
+            const path = '/' + name.replace(/\.txt$/, '').replace(/__/g, '/');
+            if (f.content !== undefined) { ensureDir(path.split('/').slice(0, -1).join('/') || '/'); fSet(path, f.content); n++; }
+          });
+          toast(n + ' arquivos restaurados do Gist (real)', 'backup');
+          clog('INFO', 'VFS restore ← gist ' + gid + ' (' + n + ' arq)');
+        } catch (e) { toast('Erro real: ' + e.message.slice(0, 60), 'close'); }
+      };
+      el.appendChild(rgr);
       const r2 = document.createElement('div'); r2.className = 'btn-row';
       r2.innerHTML = '<button class="big-btn">Restaurar de arquivo</button>';
       r2.querySelector('button').onclick = () => {
