@@ -1,6 +1,7 @@
-/* Thcode service worker — cache-first offline */
-const CACHE = 'thcode-v2';
-const CORE = ['./', './index.html', './style.css', './script.js', './manifest.json', './assets/logo.svg'];
+/* Thcode service worker — cache-first offline (v2.1) */
+const CACHE = 'thcode-v2.1';
+const CORE = ['./', './index.html', './style.css', './script.js', './js/thcode-pro.js', './manifest.json',
+  './assets/logo.svg', './assets/icon-192.png', './assets/icon-512.png'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(CORE)).then(() => self.skipWaiting()));
 });

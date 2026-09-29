@@ -1,7 +1,7 @@
 {
   "name": "thcode",
-  "version": "2.0.0",
-  "description": "Thcode — editor de código mobile open-source (HTML5 + CSS3 + JS puro)",
+  "version": "2.1.0",
+  "description": "Thcode \u2014 editor de c\u00f3digo mobile open-source (HTML5 + CSS3 + JS puro)",
   "type": "module",
   "scripts": {
     "start": "node server.js",
@@ -9,7 +9,9 @@
     "lint": "node --check script.js"
   },
   "license": "MIT",
-  "devDependencies": { "jsdom": "^24.0.0" },
+  "devDependencies": {
+    "jsdom": "^24.0.0"
+  },
   "dependencies": {
     "jsdom": "^29.1.1"
   }

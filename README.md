@@ -52,3 +52,11 @@ docs/                              → PLUGIN_API, ARCHITECTURE, PRIVACY, TERMS�
 Este repositório pode ser **privado**: todo o código roda no cliente, sem backend.
 Para contribuir, veja [CONTRIBUTING](CONTRIBUTING.md). Para proteger a `main`,
 siga [docs/BRANCH_PROTECTION](docs/BRANCH_PROTECTION.md).
+
+## Thcode PRO (v2.1.0)
+- *Git/GitHub real* — clone, commit e push via API REST
+- *Vault* — tokens com AES-256-GCM no dispositivo
+- *Terminal real* — curl, wget, pkg (npm+jsDelivr), runreal (JS real)
+- *Internet* — fetch com proxy CORS, busca web
+- *IA real* — Groq, OpenRouter, Ollama local
+- *Android Bridge* — share, arquivos, bateria, install PWA
