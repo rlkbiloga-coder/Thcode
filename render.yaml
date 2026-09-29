@@ -3,12 +3,18 @@ services:
     name: thcode-backend
     rootDir: backend
     plan: free
-    env: node
+    runtime: node
     buildCommand: npm install
     startCommand: node src/server.js
+    healthCheckPath: /api/health
     envVars:
       - key: THCODE_API_TOKEN
         generateValue: true
       - key: WORKSPACE_DIR
-        value: /data/workspace
-      - sync: false
+        value: /workspace
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: GITHUB_TOKEN
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
