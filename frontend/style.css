@@ -774,3 +774,17 @@ body[data-theme="royal"]{--bg:#150a24;--bar:#211038;--accent:#a100ff;--accent2:#
 .pr-btn.solid:active{transform:scale(.97)}
 .pr-btn.ghost{background:transparent;color:#e7ecf3;border:1.5px solid #3a4354}
 .pr-btn.ghost:active{background:#202636}
+
+/* ===== LEGAL: gate de termos + banner de cookies ===== */
+#legalGate{position:fixed;inset:0;background:rgba(5,7,10,.82);z-index:9999;display:flex;align-items:center;justify-content:center;padding:18px;backdrop-filter:blur(3px)}
+.lg-card{max-width:460px;width:100%;background:#141926;border:1px solid #2a3245;border-radius:16px;padding:20px}
+.lg-title{font-size:17px;font-weight:800;margin-bottom:10px}
+.lg-body{font-size:13px;color:#aab3c2;line-height:1.6}
+.lg-body a{color:#7ec8ff}
+.lg-btns{margin-top:16px;display:flex;gap:10px}
+.lg-btn{flex:1;background:#f2f5fa;color:#0d0f14;border:0;border-radius:10px;padding:12px;font-weight:700;font-size:14px}
+#cookieBar{position:fixed;left:10px;right:10px;bottom:12px;z-index:9998;background:#161c29;border:1px solid #2a3245;border-radius:14px;padding:12px 14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+.cb-txt{flex:1;min-width:180px;font-size:12px;color:#c3ccd9;line-height:1.5}
+.cb-btns{display:flex;gap:8px}
+.cb-ok{background:#7ee2a8;color:#0d0f14;border:0;border-radius:8px;padding:9px 13px;font-weight:700;font-size:12.5px}
+.cb-min{background:transparent;color:#c3ccd9;border:1px solid #3a4354;border-radius:8px;padding:9px 13px;font-size:12.5px}

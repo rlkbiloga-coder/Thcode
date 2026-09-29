@@ -136,6 +136,28 @@ app.get('/api/processes', auth, wrap((r, w) => w.json({
 app.get('/api/logs', auth, wrap((r, w) => w.json(LOGS.slice(-500))));
 app.post('/api/logs/clear', auth, wrap((r, w) => { LOGS.length = 0; w.json({ ok: true }); }));
 
+
+/* ============ ANALYTICS (com consentimento do usuário) ============ */
+import fsp from 'node:fs/promises';
+let analyticsEvents = [];
+const ANALYTICS_FILE = () => path.join(path.resolve(config.workspace), '.analytics.json');
+async function loadAnalytics() { try { analyticsEvents = JSON.parse(await fsp.readFile(ANALYTICS_FILE(), 'utf8')); } catch { analyticsEvents = []; } }
+loadAnalytics();
+app.post('/api/analytics', auth, wrap(async (r, w) => {
+  const evts = Array.isArray(r.body.events) ? r.body.events.slice(0, 100) : [];
+  const clean = evts.map(e => ({ event: String(e.event).slice(0, 60), data: e.data && typeof e.data === 'object' ? e.data : {}, ts: String(e.ts).slice(0, 30) }));
+  analyticsEvents.push(...clean);
+  if (analyticsEvents.length > 20000) analyticsEvents = analyticsEvents.slice(-20000);
+  await fsp.writeFile(ANALYTICS_FILE(), JSON.stringify(analyticsEvents)).catch(() => {});
+  log('INFO', 'analytics', clean.length + ' eventos recebidos');
+  w.json({ ok: true, stored: analyticsEvents.length });
+}));
+app.get('/api/analytics', auth, wrap(async (r, w) => {
+  const counts = {};
+  for (const e of analyticsEvents) counts[e.event] = (counts[e.event] || 0) + 1;
+  w.json({ total: analyticsEvents.length, counts, recent: analyticsEvents.slice(-50) });
+}));
+
 /* ============ 404 ============ */
 app.use((r, w) => w.status(404).json({ error: 'Rota não existe: ' + r.path }));
 
