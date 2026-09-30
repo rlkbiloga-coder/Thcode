@@ -1,4 +1,94 @@
+# Thcode .gitignore — Segurança em Produção
+
+# Environment variables (NUNCA COMMITE!)
+.env
+.env.local
+.env.*.local
+.env.production
+.env.test
+
+# Dependencies
 node_modules/
-.DS_Store
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Runtime & logs
+workspace/
+.workspace/
+logs/
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# IDE & editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+.sublime-project
+.sublime-workspace
+
+# Build & dist
+dist/
+build/
+out/
 coverage/
+.cache/
+
+# Tests
+.nyc_output/
+.mocha/
+test-results/
+*.lcov
+
+# Docker
+.dockerignore
+docker-compose.override.yml
+
+# OS-specific
+.AppleDouble
+.LSOverride
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+
+# Secrets & credentials
+*.pem
+*.key
+*.cert
+*.csr
+credentials.json
+oauth-token.json
+ssh_keys/
+
+# Analytics & telemetry (local only)
+.analytics.json
+telemetry.log
+
+# Temporary
+tmp/
+temp/
+*.tmp
+*.bak
+
+# CI/CD
+.github/workflows/*.local.yml
+.gitlab-ci.local.yml
+
+# Database (se houver)
+*.db
+*.sqlite
+*.sqlite3
+data/
+
+# Backups
+backup/
+*.backup
+*.tar.gz
+*.zip
