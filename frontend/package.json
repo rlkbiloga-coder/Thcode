@@ -1,12 +1,14 @@
 {
   "name": "thcode",
-  "version": "2.4.3",
+  "version": "2.4.4",
   "description": "Thcode — editor de código mobile open-source (HTML5 + CSS3 + JS puro)",
   "type": "module",
   "scripts": {
     "start": "node server.js",
-    "test": "node --check script.js && node --check js/thcode-pro.js && node --check js/thcode-server.js && node --check js/thcode-promo.js && node --check js/thcode-legal.js && node tests/smoke.mjs && node tests/ui-regression.mjs && node tests/wcag.mjs",
-    "lint": "node --check script.js"
+    "test": "node scripts/build.mjs --check && node --check script.js && node --check js/thcode-pro.js && node --check js/thcode-server.js && node --check js/thcode-promo.js && node --check js/thcode-legal.js && node tests/smoke.mjs && node tests/ui-regression.mjs && node tests/wcag.mjs",
+    "lint": "node --check script.js",
+    "build": "node scripts/build.mjs",
+    "prebuild-check": "node scripts/build.mjs --check"
   },
   "license": "MIT",
   "devDependencies": {

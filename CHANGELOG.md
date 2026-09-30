@@ -1,5 +1,12 @@
 # Changelog
 
+## v2.4.4 — 2026-09-30 (#8)
+
+- Modularização: script.js (290KB, monolítico) dividido em 22 módulos-fonte em frontend/js/core/, organizados por domínio (editor, painéis, IA, terminal, plugins, boot…)
+- script.js agora é gerado por `npm run build` (scripts/build.mjs) a partir de js/core/* — saída byte-idêntica ao monolito anterior, zero risco de regressão de runtime
+- `npm test` roda `build --check` antes de tudo: falha se o script.js gerado divergir da fonte modular (evita script.js desatualizado)
+- js/core/README.md documenta a arquitetura e por que concatenação foi escolhida em vez de ES modules/bundler (site estático + testes via eval no jsdom) — fecha #8
+
 ## v2.4.3 — 2026-09-30 (#3, #5, #7)
 
 - IA: comando "Explique e corrija o arquivo" — envia o arquivo aberto como contexto ao agente e adiciona botão "Aplicar correção" nas respostas com código — fecha #5

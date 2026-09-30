@@ -21,7 +21,7 @@ const pad2 = n => String(n).padStart(2, '0');
 const fmtTime = (d = new Date()) => `${pad2(d.getHours())}:${pad2(d.getMinutes())}:${pad2(d.getSeconds())}`;
 const fmtSize = b => b < 1024 ? b + ' B' : b < 1048576 ? (b / 1024).toFixed(1) + ' KB' : (b / 1048576).toFixed(1) + ' MB';
 const icon = (n, st = '') => `<svg ${st ? `style="${st}"` : ''} aria-hidden="true"><use href="#i-${n}"/></svg>`;
-const APP_VER = 'v2.4.3 Studio';
+const APP_VER = 'v2.4.4 Studio';
 const ACODE_BASE = 'v1.13.5 (1011)';
 const THCODE_REPO = 'https://github.com/rlkbiloga-coder/Thcode';
 
