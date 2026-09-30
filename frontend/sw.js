@@ -1,6 +1,6 @@
 /* Network-first application assets; offline fallback never returns HTML as JS. */
-const CACHE = 'thcode-studio-2.5.0';
-const CORE = ['./', './index.html', './style.css?v=2.5.0', './modern.css?v=2.5.0', './script.js?v=2.5.0', './js/react-app.js?v=2.5.0',
+const CACHE = 'thcode-studio-2.5.0-infra1';
+const CORE = ['./', './index.html', './style.css?v=2.5.0', './modern.css?v=2.5.0', './script.js?v=2.5.0', './js/react-app.js?v=2.5.0-infra1',
  './js/thcode-pro.js?v=2.5.0', './js/thcode-server.js?v=2.5.0', './js/thcode-promo.js?v=2.5.0', './js/thcode-legal.js?v=2.5.0',
  './manifest.json', './assets/logo.svg', './assets/icon-192.png', './assets/icon-512.png'];
 const SHARE_CACHE = 'thcode-share';
