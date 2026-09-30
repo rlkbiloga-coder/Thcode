@@ -789,7 +789,11 @@
       { t: 'Android Bridge', s: 'Compartilhar, importar, bateria, PWA', fn: () => Panel.open('bridge') },
       { t: 'Git: commit + push real', s: 'GitHub REST API', fn: () => Panel.open('github') },
       { t: 'Run: executar arquivo real', s: 'JS com saída de console real', fn: () => { Panel.open('terminal'); setTimeout(() => Term.exec('runreal'), 150); } },
-      { t: 'pkg: instalar pacote', s: 'npm registry + jsDelivr (real)', fn: async () => { const n = await dPrompt('Instalar pacote (npm)', '', 'ex: lodash'); if (n) { Panel.open('terminal'); setTimeout(() => Term.exec('pkg add ' + n.trim()), 150); } } }
+      { t: 'pkg: instalar pacote', s: 'npm registry + jsDelivr (real)', fn: async () => { const n = await dPrompt('Instalar pacote (npm)', '', 'ex: lodash'); if (n) { Panel.open('terminal'); setTimeout(() => Term.exec('pkg add ' + n.trim()), 150); } } },
+      { t: 'IA: Explique e corrija o arquivo', s: 'Arquivo aberto no contexto + aplicar correção', fn: () => explainFix() },
+      { t: 'Aparelho: abrir pasta real', s: 'File System Access API (edita arquivos de verdade)', fn: () => Device.open() },
+      { t: 'Aparelho: salvar no aparelho', s: 'Grava o arquivo aberto de volta na pasta real', fn: () => Device.save() },
+      { t: 'Aparelho: salvar como download', s: 'Baixa o arquivo aberto (Android)', fn: () => Device.saveDownload() }
     ];
   };
 
@@ -803,10 +807,139 @@
     try { Notifs.list.unshift({ id: 'rej' + Date.now(), ic: 'close', t: 'Promise rejeitada', s: String(e.reason).slice(0, 80), ts: Date.now(), read: false }); } catch (x) {}
   });
 
+  /* ============================================================
+     #5 — IA com contexto do arquivo: "Explique e corrija"
+     ============================================================ */
+  function explainFix() {
+    if (!T.active) { toast('Abra um arquivo primeiro', 'info'); return; }
+    if (!AI.ctx.includes(T.active)) { AI.ctx.push(T.active); Store.save(); }
+    Panel.open('agent');
+    const prompt = 'Explique o que o arquivo em CTX faz, aponte problemas (bugs, segurança, performance) e corrija: devolva o arquivo completo corrigido dentro de um único bloco de código ```.';
+    setTimeout(() => {
+      const inp = document.querySelector('#agentIn');
+      const send = document.querySelector('#agentSend');
+      if (!inp) return;
+      inp.value = prompt;
+      if (send) send.click();
+    }, 180);
+  }
+  /* Botão "Aplicar correção" em respostas do agente com bloco de código */
+  const _paintAgentMsgs = AI.paintAgentMsgs.bind(AI);
+  AI.paintAgentMsgs = function (container) {
+    _paintAgentMsgs(container);
+    try {
+      const box = (container || document).querySelector('#agentMsgs');
+      if (!box || !AI.ctx.length) return;
+      box.querySelectorAll('.msg.ai').forEach(m => {
+        const code = m.querySelector('pre code');
+        if (!code || m.querySelector('.fix-apply')) return;
+        const btn = document.createElement('button');
+        btn.className = 'fix-apply';
+        btn.textContent = 'Aplicar correção ao arquivo';
+        btn.style.cssText = 'margin-top:8px;display:inline-block;background:#a100ff;color:#fff;border:0;border-radius:8px;padding:8px 14px;font-weight:600;font-size:.82rem';
+        btn.onclick = async () => {
+          const targets = AI.ctx.filter(fExists);
+          if (!targets.length) { toast('Arquivo do contexto não existe mais', 'info'); return; }
+          let target = targets[0];
+          if (targets.length > 1) { const pick = await dList('Aplicar correção em qual arquivo?', targets.map(f => ({ label: baseName(f), hint: f, value: f }))); if (!pick) return; target = pick; }
+          const ok = await dConfirm('Sobrescrever ' + baseName(target) + ' com o código corrigido?', 'A versão anterior é perdida (dica: use "git commit" antes).');
+          if (!ok) return;
+          fSet(target, code.textContent.replace(/\n$/, ''));
+          Store.save();
+          openFile(target);
+          toast('Correção aplicada em ' + baseName(target), 'check');
+        };
+        m.appendChild(btn);
+      });
+    } catch (e) {}
+  };
+
+  /* ============================================================
+     #3 — File System Access API: editar pastas reais do aparelho
+     Honestidade: se o navegador não tem a API, avisa e sugere o Bridge.
+     ============================================================ */
+  const Device = {
+    handle: null,
+    files: {},
+    available() { return typeof window.showDirectoryPicker === 'function'; },
+    async open() {
+      if (!this.available()) {
+        toast('File System Access não disponível neste navegador — use Bridge → pick para importar', 'info');
+        Page.open('devicenoop', 'Pasta do aparelho', el => {
+          el.innerHTML = '<div class="empty">' + icon('folder') + '<br>File System Access API indisponível.<br>No Android, use o painel Bridge (importar arquivo) e "Salvar" (download).<br>No desktop Chrome/Edge, abra o Thcode no computador para editar pastas reais.</div>';
+        }, false);
+        return;
+      }
+      try {
+        this.handle = await window.showDirectoryPicker({ mode: 'readwrite' });
+      } catch (e) { return; /* usuário cancelou */ }
+      this.files = {};
+      await this.walk(this.handle, '', 0);
+      const names = Object.keys(this.files);
+      if (!names.length) { toast('Pasta vazia', 'info'); return; }
+      Page.open('device', 'Pasta real: ' + this.handle.name, el => {
+        el.innerHTML = names.slice(0, 200).map(p => '<div class="row" data-p="' + esc(p) + '">' + icon('file') + '<div class="grow"><div class="t">' + esc(baseName(p)) + '</div><div class="s">' + esc(p) + '</div></div></div>').join('') + (names.length > 200 ? '<div class="empty">+' + (names.length - 200) + ' arquivos omitidos</div>' : '');
+        el.querySelectorAll('.row').forEach(r => r.onclick = () => this.load(r.dataset.p));
+      }, false);
+      toast(names.length + ' arquivos — toque para abrir', 'folder');
+    },
+    async walk(dir, prefix, depth) {
+      if (depth > 4 || Object.keys(this.files).length >= 300) return;
+      for await (const [name, h] of dir.entries()) {
+        const p = prefix + name;
+        if (h.kind === 'file') { if (/\.(txt|md|json|js|mjs|css|html|htm|py|sh|xml|svg|yml|yaml|csv|toml|ini|env|c|cpp|java|ts)$/i.test(name)) this.files[p] = h; }
+        else await this.walk(h, p + '/', depth + 1);
+      }
+    },
+    async load(relPath) {
+      const h = this.files[relPath];
+      if (!h) return;
+      try {
+        const file = await h.getFile();
+        const text = await file.text();
+        const p = normPath('/Aparelho/' + this.handle.name + '/' + relPath);
+        if (!FS.dirs.includes('/Aparelho')) FS.dirs.push('/Aparelho');
+        ensureDir(p.split('/').slice(0, -1).join('/') || '/');
+        fSet(p, text);
+        this._origin = this._origin || {};
+        this._origin[p] = h;
+        Store.save();
+        openFile(p);
+        Page.close();
+        toast('Aberto do aparelho — use "Salvar no aparelho" pra gravar', 'folder');
+      } catch (e) { toast('Erro ao abrir: ' + e.message, 'error'); }
+    },
+    async save() {
+      if (!this._origin || !this._origin[T.active]) { toast('O arquivo aberto não veio de uma pasta do aparelho', 'info'); return; }
+      const h = this._origin[T.active];
+      try {
+        const w = await h.createWritable();
+        const content = (typeof W.Ed !== 'undefined' && W.Ed.currentContent) ? W.Ed.currentContent(T.active) : ((fGet(T.active) || {}).c || '');
+        await w.write(content);
+        await w.close();
+        toast('Salvo no aparelho: ' + baseName(T.active), 'check');
+      } catch (e) { toast('Erro ao salvar: ' + e.message, 'error'); }
+    },
+    /* Bridge Android: salvar arquivo aberto via download real */
+    async saveDownload() {
+      if (!T.active) { toast('Abra um arquivo primeiro', 'info'); return; }
+      try {
+        const c = (fGet(T.active) || { c: '' }).c;
+        const blob = new Blob([c], { type: 'text/plain' });
+        const a = document.createElement('a');
+        if (typeof URL.createObjectURL === 'function') { a.href = URL.createObjectURL(blob); setTimeout(() => URL.revokeObjectURL(a.href), 4000); }
+        else a.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(c);
+        a.download = baseName(T.active);
+        a.click();
+        toast('Download iniciado: ' + baseName(T.active), 'check');
+      } catch (e) { toast('Erro: ' + e.message, 'error'); }
+    }
+  };
+
   /* boot do módulo */
   Bridge.init();
 
   /* Handle para depuração */
-  window.ThcodePro = { Vault, Net, GitReal, Pkg, ProcsReal, Runner, Bridge, AIReal, PRO_VER };
+  window.ThcodePro = { Vault, Net, GitReal, Pkg, ProcsReal, Runner, Bridge, AIReal, Device, explainFix, PRO_VER };
   console.log('Thcode PRO pronto. Comandos: git, pkg, curl, wget, ddg, vault, bridge, neofetch, runreal');
 })();

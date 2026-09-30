@@ -150,7 +150,7 @@ await test('settings.json aplica', async () => {
 await test('sobre mostra versão Studio', async () => {
   T.SettingsPage.about();
   assert($('#pageBody').textContent.includes('Thcode'), 'sem rebrand');
-  assert($('#pageBody').textContent.includes('2.4.2'), 'sem versão');
+  assert($('#pageBody').textContent.includes('2.4.3'), 'sem versão');
   T.Page.back();
 });
 await test('changelog tem 2.0.0', async () => {

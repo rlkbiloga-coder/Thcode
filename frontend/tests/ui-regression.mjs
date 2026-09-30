@@ -20,6 +20,29 @@ W.Panel.open('files');await w.ThcodeServer.connect('https://test.invalid','');as
 assert.equal(w.document.querySelector('#highlightCode').textContent, W.Ed.value() + '\n', 'syntax layer changed original source');
 const ids=[...w.document.querySelectorAll('[id]')].map(e=>e.id);assert.equal(ids.length,new Set(ids).size);
 const rail=[...w.document.querySelectorAll('.rail-btn')].map(e=>e.dataset.panel);assert.equal(rail.length,new Set(rail).size);
+/* ---- PRO: #5 explainFix e #3 Device (File System Access) ---- */
+{
+  const P=w.ThcodePro;assert.ok(P&&P.explainFix,'PRO sem explainFix');
+  W.fSet('/MeuJarvis/app.js','function soma(a,b){return a+b}');W.openFile('/MeuJarvis/app.js');
+  P.explainFix();await sleep(300);
+  const inp=w.document.querySelector('#agentIn');
+  /* explainFix preenche e envia: o campo é limpo pelo sendAgent, então valida a mensagem enviada */
+  const sent=W.AI.agentMsgs.find(m=>m.role==='you');
+  assert.ok(sent&&sent.text.includes('Explique'),'prompt explainFix não enviado ao agente');
+  assert.ok(W.AI.ctx.includes('/MeuJarvis/app.js'),'arquivo fora do contexto');
+  assert.ok(P.Device,'PRO sem Device');
+  if(!P.Device.available()){
+    await P.Device.open();await sleep(150);
+    assert.ok(w.document.querySelector('#pageBody').textContent.includes('indispon'),'sem aviso honesto do Device');
+    W.Page.close();
+  }
+  W.fSet('/MeuJarvis/nota.txt','conteúdo');W.openFile('/MeuJarvis/nota.txt');
+  let clicked=false;const proto=w.HTMLAnchorElement.prototype;const _c=proto.click;proto.click=function(){clicked=true};
+  if(!w.URL.createObjectURL)w.URL.createObjectURL=()=>'blob:test';
+  await P.Device.saveDownload();proto.click=_c;
+  assert.ok(clicked,'saveDownload não gerou download');
+  assert.deepEqual(errors,[]);
+}
 assert.deepEqual(errors,[]);
 console.log('PASS: full modules boot, consent, page deduplication, page/drawer race, close button, background connection isolation, unique IDs and rail, zero JS errors');
 w.close();

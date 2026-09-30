@@ -21,7 +21,7 @@ const pad2 = n => String(n).padStart(2, '0');
 const fmtTime = (d = new Date()) => `${pad2(d.getHours())}:${pad2(d.getMinutes())}:${pad2(d.getSeconds())}`;
 const fmtSize = b => b < 1024 ? b + ' B' : b < 1048576 ? (b / 1024).toFixed(1) + ' KB' : (b / 1048576).toFixed(1) + ' MB';
 const icon = (n, st = '') => `<svg ${st ? `style="${st}"` : ''} aria-hidden="true"><use href="#i-${n}"/></svg>`;
-const APP_VER = 'v2.4.2 Studio';
+const APP_VER = 'v2.4.3 Studio';
 const ACODE_BASE = 'v1.13.5 (1011)';
 const THCODE_REPO = 'https://github.com/rlkbiloga-coder/Thcode';
 
@@ -4965,6 +4965,6 @@ Palette.commands = function () {
 
 
 /* Handle de depuração/testes (console + tests/smoke.mjs) */
-window.ThcodeTest = { S, T, FS, Ed, AC, Term, Bash, Panel, Page, Drawer, Palette, Plugins, PLUGIN_DEFS, PLUGIN_META, AI, GH, AI_MODELS, Browser, Conn, Auth, Tools, CustomPlugins, CustomCmds, Hooks, CAPS, computeCaps, PluginDetail, PluginSettings, pset, SettingsPage, Notifs, Procs, State, Store, Metrics, openFile, saveFile, closeTab, fGet, fSet, fDel, fExists, fRead, dExists, listDir, detectLang, LANGS, baseName, normPath, applySettings, applyTermTheme, applySettingsJson, formatActive, renderEditor, updateCrumb, toast, dialog, dAlert, dConfirm, dPrompt, dList, THEMES, APP_VER, LS_KEY, OLD_LS_KEY, ficon, rainbowify, Emmet, Snippets, gotoLine };
+window.ThcodeTest = { S, T, FS, Ed, icon, AC, Term, Bash, Panel, Page, Drawer, Palette, Plugins, PLUGIN_DEFS, PLUGIN_META, AI, GH, AI_MODELS, Browser, Conn, Auth, Tools, CustomPlugins, CustomCmds, Hooks, CAPS, computeCaps, PluginDetail, PluginSettings, pset, SettingsPage, Notifs, Procs, State, Store, Metrics, openFile, saveFile, closeTab, fGet, fSet, fDel, fExists, fRead, dExists, listDir, detectLang, LANGS, baseName, normPath, applySettings, applyTermTheme, applySettingsJson, formatActive, renderEditor, updateCrumb, toast, dialog, dAlert, dConfirm, dPrompt, dList, THEMES, APP_VER, LS_KEY, OLD_LS_KEY, ficon, rainbowify, Emmet, Snippets, gotoLine };
 document.addEventListener('DOMContentLoaded', boot);
 })();
