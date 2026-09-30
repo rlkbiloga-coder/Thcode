@@ -8,7 +8,9 @@ import { WebSocketServer } from 'ws';
 import os from 'node:os';
 import path from 'node:path';
 import fss from 'node:fs';
-import { auth, rateLimit, config, log, LOGS } from './security.js';
+import helmet from 'helmet';
+import cors from 'cors';
+import { auth, rateLimit, config, log, LOGS, redactSecrets, isAllowedOrigin } from './security.js';
 import * as FS from './fs.js';
 import * as Git from './git.js';
 import * as GH from './github.js';
@@ -24,6 +26,31 @@ catch (e) { if (e.code === 'EACCES' || e.code === 'EPERM') { config.workspace = 
 const app = express();
 app.set('trust proxy', 1);
 app.disable('x-powered-by');
+app.use(helmet({
+  crossOriginResourcePolicy: false,
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+      imgSrc: ["'self'", 'data:', 'https:'],
+      connectSrc: ["'self'", 'ws:', 'wss:', 'https://api.github.com'],
+      objectSrc: ["'none'"],
+      baseUri: ["'none'"],
+      frameAncestors: ["'none'"]
+    }
+  }
+}));
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    if (isAllowedOrigin(origin)) return callback(null, true);
+    callback(new Error('Origin not allowed by CORS'));
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json({ limit: '2mb' }));
 app.use(rateLimit);
 
@@ -32,7 +59,9 @@ const wrap = fn => async (req, res) => {
   catch (e) {
     const status = e.status || 500;
     if (status >= 500) log('ERROR', 'api', `${req.method} ${req.path}: ${e.message}`);
-    res.status(status).json({ error: e.message, ...(e.status ? {} : { stack: e.stack?.split('\n').slice(0, 3).join(' | ') }) });
+    const safeMessage = redactSecrets(e.message || 'Erro interno');
+    const safeStack = e.stack ? redactSecrets(e.stack.split('\n').slice(0, 3).join(' | ')) : undefined;
+    res.status(status).json({ error: safeMessage, ...(e.status ? {} : { stack: safeStack }) });
   }
 };
 
@@ -48,6 +77,11 @@ app.get('/api/health', wrap(async (req, res) => {
     platform: `${os.type()} ${os.arch()}`,
     memory: { total: os.totalmem(), free: os.freemem() },
     workspace: path.resolve(config.workspace),
+    security: {
+      tokenConfigured: !!config.token,
+      corsAllowed: config.allowedOrigins.length > 0,
+      leakRedaction: true
+    },
     checks: [
       up('Frontend → Backend API', true, 'REST respondendo'),
       up('Filesystem', fss.existsSync(path.resolve(config.workspace)), 'workspace acessível'),
@@ -137,7 +171,6 @@ app.get('/api/processes', auth, wrap((r, w) => w.json({
 app.get('/api/logs', auth, wrap((r, w) => w.json(LOGS.slice(-500))));
 app.post('/api/logs/clear', auth, wrap((r, w) => { LOGS.length = 0; w.json({ ok: true }); }));
 
-
 /* ============ ANALYTICS (com consentimento do usuário) ============ */
 import fsp from 'node:fs/promises';
 let analyticsEvents = [];
@@ -158,7 +191,6 @@ app.get('/api/analytics', auth, wrap(async (r, w) => {
   for (const e of analyticsEvents) counts[e.event] = (counts[e.event] || 0) + 1;
   w.json({ total: analyticsEvents.length, counts, recent: analyticsEvents.slice(-50) });
 }));
-
 
 /* ============ STRIPE (pagamento REAL via API oficial) ============ */
 async function stripe(path, formObj) {
@@ -189,7 +221,7 @@ app.post('/api/billing/checkout', auth, wrap(async (r, w) => {
   w.json({ id: sess.id, url: sess.url });
 }));
 app.get('/api/billing/verify', auth, wrap(async (r, w) => {
-  const sess = await stripe('checkout/sessions/' + String(r.query.session_id || '').replace(/[^a-zA-Z0-9_/\-]/g, ''), { 'expand[0]': 'payment_intent' });
+  const sess = await stripe('checkout/sessions/' + String(r.query.session_id || '').replace(/[^a-zA-Z0-9_\/\-]/g, ''), { 'expand[0]': 'payment_intent' });
   const paid = sess.payment_status === 'paid';
   log('INFO', 'billing', 'verify ' + (paid ? 'PAGO' : 'pendente'));
   w.json({ paid, status: sess.payment_status });
@@ -202,7 +234,6 @@ app.use((r, w) => w.status(404).json({ error: 'Rota não existe: ' + r.path }));
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
 
-/* /ws/terminal?token=... — sessão real de shell */
 wss.on('connection', (ws, req) => {
   const url = new URL(req.url, 'http://x');
   if (!config.token || url.searchParams.get('token') !== config.token) { ws.close(4001, 'token inválido'); return; }
@@ -213,7 +244,7 @@ wss.on('connection', (ws, req) => {
   ws.send(JSON.stringify({ type: 'meta', id: sess.id, backend: backendType() }));
   sess.proc.onData ? sess.proc.onData(d => { if (ws.readyState === 1) ws.send(JSON.stringify({ type: 'out', data: d })); })
     : (sess.proc.stdout.on('data', d => ws.readyState === 1 && ws.send(JSON.stringify({ type: 'out', data: d.toString() }))),
-       sess.proc.stderr.on('data', d => ws.readyState === 1 && ws.send(JSON.stringify({ type: 'err', data: d.toString() }))));
+       sess.proc.stderr.on('data', d => ws.readyState === 1 && ws.send(JSON.stringify({ type: 'err', data: d.toString() })))) ;
   sess.proc.on('exit', code => { if (ws.readyState === 1) ws.send(JSON.stringify({ type: 'exit', code })); ws.close(); sessions.delete(sess.id); });
   ws.on('message', raw => {
     try {
@@ -226,7 +257,7 @@ wss.on('connection', (ws, req) => {
 });
 
 const logWs = new Set();
-wss.on('connection', (ws, req) => { /* /ws/logs */
+wss.on('connection', (ws, req) => {
   const url = new URL(req.url, 'http://x');
   if (url.pathname !== '/ws/logs' || !config.token || url.searchParams.get('token') !== config.token) return;
   logWs.add(ws);
@@ -234,7 +265,6 @@ wss.on('connection', (ws, req) => { /* /ws/logs */
   ws.on('close', () => logWs.delete(ws));
 });
 const origLog = log;
-/* retransmite logs para ws (streaming real) */
 const _push = (level, service, message) => {
   const e = origLog(level, service, message);
   const payload = JSON.stringify({ type: 'log', ...e });
