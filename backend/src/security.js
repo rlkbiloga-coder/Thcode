@@ -1,13 +1,27 @@
 /* Segurança: auth, rate limit, proteção de path, validação */
 import crypto from 'node:crypto';
+import path from 'node:path';
 
 export const config = {
   token: process.env.THCODE_API_TOKEN || '',
   workspace: process.env.WORKSPACE_DIR || './workspace',
   rateWindow: +(process.env.RATE_WINDOW_MS || 60000),
   rateMax: +(process.env.RATE_MAX || 300),
-  maxTerminals: +(process.env.MAX_TERMINALS || 5)
+  maxTerminals: +(process.env.MAX_TERMINALS || 5),
+  allowedOrigins: (process.env.ALLOWED_ORIGINS || 'http://localhost:3000,https://rlkbiloga-coder.github.io,https://localhost:8080').split(',').map(v => v.trim()).filter(Boolean)
 };
+
+export function isAllowedOrigin(origin) {
+  if (!origin) return true;
+  return config.allowedOrigins.includes(origin) || config.allowedOrigins.some(v => v === '*' || v === origin);
+}
+
+export function redactSecrets(input = '') {
+  return String(input)
+    .replace(/(Authorization\s*:\s*Bearer\s+)[A-Za-z0-9._-]+/gi, '$1[redacted]')
+    .replace(/(token|secret|key|authorization)\s*[:=]\s*([A-Za-z0-9._-]+)/gi, '$1=[redacted]')
+    .replace(/Bearer\s+[A-Za-z0-9._-]+/gi, 'Bearer [redacted]');
+}
 
 /* --- auth: Bearer token obrigatório se configurado --- */
 export function auth(req, res, next) {
@@ -37,9 +51,6 @@ export function rateLimit(req, res, next) {
 }
 
 /* --- path traversal: resolve e prende ao workspace --- */
-import path from 'node:path';
-import fs from 'node:fs';
-
 export function wsPath(rel = '') {
   const root = path.resolve(config.workspace);
   const p = path.resolve(root, String(rel).replace(/\\/g, '/'));
@@ -77,7 +88,7 @@ export function safeArgs(args) {
 /* --- logs em memória --- */
 export const LOGS = [];
 export function log(level, service, message) {
-  const entry = { ts: new Date().toISOString(), level, service, message: String(message).slice(0, 2000) };
+  const entry = { ts: new Date().toISOString(), level, service, message: redactSecrets(String(message).slice(0, 2000)) };
   LOGS.push(entry);
   if (LOGS.length > 5000) LOGS.shift();
   const line = `[${entry.ts}] [${level}] [${service}] ${entry.message}`;
