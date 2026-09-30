@@ -1,10 +1,10 @@
 {
   "name": "Thcode — Mobile IDE",
   "short_name": "Thcode",
-  "id": "/",
+  "id": "/Thcode/",
   "description": "IDE mobile open-source: editor, terminal Linux, plugins, Git/GitHub real, IA e preview.",
-  "start_url": "./index.html",
-  "scope": "./",
+  "start_url": "/Thcode/",
+  "scope": "/Thcode/",
   "display": "standalone",
   "orientation": "any",
   "background_color": "#0b0e13",
