@@ -1,0 +1,187 @@
+// THCODE v3.0 — PRISMA SCHEMA COM AUDIT LOGGING E DATA PROTECTION
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// USER MANAGEMENT
+// ═══════════════════════════════════════════════════════════════════════════
+model User {
+  id                String    @id @default(cuid())
+  email             String    @unique
+  password          String    @db.Text
+  name              String?
+  avatar            String?
+  twoFactorEnabled  Boolean   @default(false)
+  twoFactorSecret   String?   @db.Text
+  apiKeysRotated    DateTime? @db.Timestamp(6)
+  lastLogin         DateTime? @db.Timestamp(6)
+  loginAttempts     Int       @default(0)
+  lockedUntil       DateTime? @db.Timestamp(6)
+  
+  // Data Protection
+  deletedAt         DateTime? @db.Timestamp(6) // Soft delete
+  dataVersion       Int       @default(1) // Versioning
+  gdprConsent       Boolean   @default(false)
+  
+  // Relationships
+  sessions          Session[]
+  apiKeys           ApiKey[]
+  auditLogs         AuditLog[]
+  preferences       UserPreference?
+  
+  createdAt         DateTime  @default(now()) @db.Timestamp(6)
+  updatedAt         DateTime  @updatedAt @db.Timestamp(6)
+
+  @@index([email])
+  @@index([deletedAt])
+  @@fulltext([email, name]) // Full-text search
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SESSIONS & AUTHENTICATION
+// ═══════════════════════════════════════════════════════════════════════════
+model Session {
+  id                String    @id @default(cuid())
+  userId            String
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token             String    @unique @db.Text
+  refreshToken      String?   @unique @db.Text
+  expiresAt         DateTime  @db.Timestamp(6)
+  ipAddress         String?
+  userAgent         String?   @db.Text
+  twoFactorVerified Boolean   @default(false)
+  deletedAt         DateTime? @db.Timestamp(6) // Soft delete
+
+  createdAt         DateTime  @default(now()) @db.Timestamp(6)
+  updatedAt         DateTime  @updatedAt @db.Timestamp(6)
+
+  @@index([userId])
+  @@index([token])
+  @@index([deletedAt])
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// API KEYS
+// ═══════════════════════════════════════════════════════════════════════════
+model ApiKey {
+  id                String    @id @default(cuid())
+  userId            String
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name              String
+  key               String    @unique @db.Text
+  secret            String    @unique @db.Text
+  scopes            String[]  @default([])
+  lastUsedAt        DateTime? @db.Timestamp(6)
+  expiresAt         DateTime? @db.Timestamp(6)
+  rotatedAt         DateTime? @db.Timestamp(6)
+  deletedAt         DateTime? @db.Timestamp(6) // Soft delete
+
+  createdAt         DateTime  @default(now()) @db.Timestamp(6)
+  updatedAt         DateTime  @updatedAt @db.Timestamp(6)
+
+  @@index([userId])
+  @@index([key])
+  @@index([deletedAt])
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// AUDIT LOGGING
+// ═══════════════════════════════════════════════════════════════════════════
+model AuditLog {
+  id                String    @id @default(cuid())
+  userId            String?
+  user              User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action            String
+  resource          String
+  resourceId        String?
+  before            Json?     // Previous state
+  after             Json?     // New state
+  ipAddress         String?
+  userAgent         String?   @db.Text
+  statusCode        Int?
+  errorMessage      String?   @db.Text
+  maskedData        Boolean   @default(false) // GDPR compliance
+  retentionUntil    DateTime  @db.Timestamp(6)
+
+  createdAt         DateTime  @default(now()) @db.Timestamp(6)
+
+  @@index([userId])
+  @@index([action])
+  @@index([resource])
+  @@index([resourceId])
+  @@index([createdAt])
+  @@index([retentionUntil])
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// DATA VERSIONING
+// ═══════════════════════════════════════════════════════════════════════════
+model DataVersion {
+  id                String    @id @default(cuid())
+  entityType        String
+  entityId          String
+  version           Int
+  data              Json      @db.JsonB
+  changedBy         String?
+  changeReason      String?   @db.Text
+  deletedAt         DateTime? @db.Timestamp(6)
+
+  createdAt         DateTime  @default(now()) @db.Timestamp(6)
+
+  @@unique([entityType, entityId, version])
+  @@index([entityType])
+  @@index([entityId])
+  @@index([createdAt])
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// USER PREFERENCES
+// ═══════════════════════════════════════════════════════════════════════════
+model UserPreference {
+  id                String    @id @default(cuid())
+  userId            String    @unique
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  theme             String    @default("dark")
+  language          String    @default("en")
+  timezone          String    @default("UTC")
+  notificationsOn   Boolean   @default(true)
+  emailDigest       Boolean   @default(false)
+  twoFactorRequired Boolean   @default(false)
+  dataRetention     Int       @default(90) // days
+  preferences       Json      @default("{}")
+
+  createdAt         DateTime  @default(now()) @db.Timestamp(6)
+  updatedAt         DateTime  @updatedAt @db.Timestamp(6)
+
+  @@index([userId])
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// WEBHOOKS
+// ═══════════════════════════════════════════════════════════════════════════
+model WebhookEvent {
+  id                String    @id @default(cuid())
+  eventType         String
+  payload           Json      @db.JsonB
+  status            String    @default("pending") // pending, sent, failed
+  attempts          Int       @default(0)
+  maxAttempts       Int       @default(5)
+  nextRetryAt       DateTime? @db.Timestamp(6)
+  lastError         String?   @db.Text
+  deletedAt         DateTime? @db.Timestamp(6)
+
+  createdAt         DateTime  @default(now()) @db.Timestamp(6)
+  updatedAt         DateTime  @updatedAt @db.Timestamp(6)
+
+  @@index([eventType])
+  @@index([status])
+  @@index([nextRetryAt])
+  @@index([deletedAt])
+}
+
