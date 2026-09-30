@@ -1,0 +1,117 @@
+{
+  "$schema": "https://railway.app/railway.schema.json",
+  "build": {
+    "builder": "DOCKERFILE",
+    "dockerfile": "Dockerfile.advanced",
+    "buildCache": true
+  },
+  "deploy": {
+    "startCommand": "npm start",
+    "numReplicas": 3,
+    "restartPolicyType": "ALWAYS",
+    "restartPolicyMaxRetries": 3,
+    "healthcheckPath": "/api/health",
+    "healthcheckTimeout": 30,
+    "drainingSeconds": 30,
+    "overlapSeconds": 30,
+    "preDeployCommand": ["npm", "run", "prisma:migrate", "npm", "run", "prisma:seed"],
+    "preDeployTimeoutSeconds": 300,
+    "ipv6EgressEnabled": true,
+    "sleepApplication": false,
+    "region": "sfo",
+    "multiRegionConfig": {
+      "sfo": {
+        "numReplicas": 2
+      },
+      "iad": {
+        "numReplicas": 1
+      }
+    },
+    "limitOverride": {
+      "containers": {
+        "cpu": 2,
+        "memoryBytes": 1073741824,
+        "diskBytes": 1073741824
+      }
+    }
+  },
+  "variables": {
+    "NODE_ENV": {
+      "value": "production",
+      "description": "Runtime environment"
+    },
+    "LOG_LEVEL": {
+      "value": "info",
+      "description": "Logging level (debug, info, warn, error)"
+    },
+    "ENABLE_METRICS": {
+      "value": "true",
+      "description": "Enable Prometheus metrics"
+    },
+    "ENABLE_TRACING": {
+      "value": "true",
+      "description": "Enable distributed tracing"
+    },
+    "ENABLE_PROFILING": {
+      "value": "true",
+      "description": "Enable CPU/memory profiling"
+    },
+    "CACHE_STRATEGY": {
+      "value": "multi-tier",
+      "description": "Redis cache strategy"
+    },
+    "RATE_LIMIT_ENABLED": {
+      "value": "true",
+      "description": "Enable rate limiting"
+    },
+    "RATE_LIMIT_MAX_REQUESTS": {
+      "value": "100",
+      "description": "Max requests per window"
+    },
+    "COMPRESSION_TYPE": {
+      "value": "brotli",
+      "description": "Compression algorithm"
+    },
+    "COMPRESSION_LEVEL": {
+      "value": "11",
+      "description": "Compression level (1-11)"
+    },
+    "DATABASE_POOL_SIZE": {
+      "value": "20",
+      "description": "PostgreSQL connection pool size"
+    },
+    "ENABLE_2FA": {
+      "value": "true",
+      "description": "Enable two-factor authentication"
+    },
+    "ENABLE_OAUTH2": {
+      "value": "true",
+      "description": "Enable OAuth2 authentication"
+    },
+    "ENABLE_SAML": {
+      "value": "true",
+      "description": "Enable SAML authentication"
+    },
+    "ENABLE_GRAPHQL": {
+      "value": "true",
+      "description": "Enable GraphQL API"
+    },
+    "S3_ENABLED": {
+      "value": "true",
+      "description": "Enable S3 storage"
+    },
+    "SENTRY_ENABLED": {
+      "value": "true",
+      "description": "Enable Sentry error tracking"
+    },
+    "DATADOG_ENABLED": {
+      "value": "true",
+      "description": "Enable Datadog monitoring"
+    },
+    "JAEGER_ENABLED": {
+      "value": "true",
+      "description": "Enable Jaeger distributed tracing"
+    }
+  }
+}
+

@@ -1,0 +1,70 @@
+# THCODE v3.0 — DOCKERFILE OTIMIZADO PARA PRODUÇÃO
+# Multi-stage build, security hardening, minimal size
+
+# ═══════════════════════════════════════════════════════════════════════════
+# STAGE 1: BUILD
+# ═══════════════════════════════════════════════════════════════════════════
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+# Install build dependencies
+RUN apk add --no-cache python3 make g++
+
+# Copy package files
+COPY package*.json ./
+COPY backend/package*.json ./backend/
+
+# Install dependencies
+RUN npm ci --prefer-offline --no-audit
+RUN cd backend && npm ci --prefer-offline --no-audit
+
+# Copy source code
+COPY . .
+
+# Build Prisma
+RUN cd backend && npx prisma generate
+
+# ═══════════════════════════════════════════════════════════════════════════
+# STAGE 2: RUNTIME
+# ═══════════════════════════════════════════════════════════════════════════
+FROM node:20-alpine
+
+# Add dumb-init for proper signal handling
+RUN apk add --no-cache dumb-init curl
+
+WORKDIR /app
+
+# Copy built application
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/backend/node_modules ./backend/node_modules
+COPY --from=builder /app/backend/node_modules/.prisma ./backend/node_modules/.prisma
+COPY . .
+
+# Create non-root user for security
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001
+
+USER nodejs
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:${PORT:-3000}/api/health || exit 1
+
+# Environment variables
+ENV NODE_ENV=production \
+    NODE_OPTIONS="--max-old-space-size=512 --enable-source-maps" \
+    PORT=3000
+
+# Run with dumb-init to handle signals properly
+ENTRYPOINT ["/sbin/dumb-init", "--"]
+CMD ["npm", "start"]
+
+# Expose port
+EXPOSE 3000
+
+# Labels
+LABEL org.opencontainers.image.title="Thcode" \
+      org.opencontainers.image.version="3.0.0" \
+      org.opencontainers.image.description="Advanced production-grade backend with observability"
+
