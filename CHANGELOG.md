@@ -1,9 +1,10 @@
 # Changelog
 
-## v2.4.3 — 2026-09-30 (#3, #5)
+## v2.4.3 — 2026-09-30 (#3, #5, #7)
 
 - IA: comando "Explique e corrija o arquivo" — envia o arquivo aberto como contexto ao agente e adiciona botão "Aplicar correção" nas respostas com código — fecha #5
 - Aparelho: File System Access API real — abrir pasta real do aparelho (desktop Chrome/Edge), editar e gravar de volta; no Android, aviso honesto + salvar via download — fecha #3
+- Acessibilidade: 14 temas agora cumprem contraste WCAG AA (corrigidos muted/gutter/accent fora do mínimo) + teste automatizado de contraste no CI (tests/wcag.mjs) — fecha #7
 - Base: exportado icon() para módulos PRO (bug latente nos painéis Vault/Net/Git)
 
 ## v2.4.2 — 2026-09-30 (#1, #2)
