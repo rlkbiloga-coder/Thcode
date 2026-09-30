@@ -9,10 +9,20 @@ Alternativas: Vercel/Netlify/Cloudflare Pages apontando o build para a pasta `fr
 ## Backend (onde o PTY/terminal funciona)
 O backend precisa de um servidor Node real. Opções:
 
-### Railway
-1. Importe o repositório, escolha "backend" como root directory
-2. Variáveis: THCODE_API_TOKEN, WORKSPACE_DIR=/data/workspace (volume)
-3. Deploy. A URL pública é a que você cola no painel Servidor do app.
+### Railway (infraestrutura v2.6)
+O `railway.json` usa `backend/Dockerfile`, Node 22 e `/api/ready`.
+O contexto Docker é a raiz do repositório. Para esse modo, configure o serviço com Root Directory `/` e config file `/railway.json`, não `backend/`.
+
+Variáveis no serviço `thcode-backend`:
+1. Preserve `THCODE_API_TOKEN` existente. Não gire tokens de acesso usados pelo frontend sem planejar a troca.
+2. `DATABASE_URL=${{Postgres.DATABASE_URL}}` e `REDIS_URL=${{Redis.REDIS_URL}}` referenciam os serviços já existentes. Nomes devem corresponder exatamente ao projeto.
+3. `E2B_API_KEY` recebe a chave E2B do painel, exclusivamente no backend.
+4. `E2B_WEBHOOK_SECRET` recebe o segredo compartilhado registrado no webhook E2B.
+5. `CORS_ORIGINS=https://rlkbiloga-coder.github.io` (origem, sem o caminho `/Thcode/`).
+6. `WORKSPACE_DIR=/app/workspace`. Monte um volume nesse caminho para arquivos persistirem entre deploys. O usuário `node` do container precisa de permissão de escrita.
+
+A configuração em arquivo não registra automaticamente um webhook no E2B, não cria serviços Postgres/Redis e não monta volumes. Esses recursos precisam existir e ser verificados na conta.
+O endpoint webhook é uma URL HTTPS do backend, nunca uma URL do GitHub Pages.
 
 ### Render (render.yaml resumo)
 1. New → Blueprint (detecta o repo)

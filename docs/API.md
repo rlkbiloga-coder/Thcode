@@ -15,3 +15,6 @@ AI   GET /api/ai/providers, POST /api/ai/chat {provider,messages,model?}
 Misc GET /api/processes, GET /api/logs, POST /api/logs/clear
 WS   /ws/terminal?token=  {in|resize} -> {out|err|exit}
      /ws/logs?token=      streaming em tempo real
+
+## Infraestrutura e E2B (v2.6)
+Endpoints, autenticação, payloads e limites documentados em [infrastructure.md](infrastructure.md).

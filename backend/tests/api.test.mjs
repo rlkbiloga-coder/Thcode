@@ -6,7 +6,7 @@ import fs from 'node:fs';
 const TOKEN = crypto.randomBytes(24).toString('hex');
 const PORT = 8123;
 const WS = fs.mkdtempSync('/tmp/thcode-t-');
-const env = { ...process.env, THCODE_API_TOKEN: TOKEN, PORT: String(PORT), WORKSPACE_DIR: WS, GITHUB_TOKEN: '', GROQ_API_KEY: '' };
+const env = { ...process.env, THCODE_API_TOKEN: TOKEN, PORT: String(PORT), WORKSPACE_DIR: WS, GITHUB_TOKEN: '', GROQ_API_KEY: '', E2B_API_KEY: '', DATABASE_URL: '', REDIS_URL: '', E2B_WEBHOOK_SECRET: '' };
 
 const srv = spawn('node', ['src/server.js'], { env, cwd: process.cwd() });
 let fails = 0, passes = 0;

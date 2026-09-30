@@ -63,3 +63,6 @@ via workflow (.github/workflows/pages.yml) — sem fingir backend no Pages.
 PWA instalável direto do navegador (Adicionar à tela inicial). Para APK:
 abra https://www.pwabuilder.com → cole a URL do site → Package for Stores → Android.
 (docs/DEPLOY.md tem o passo a passo completo.)
+
+### Backend v2.6: E2B, Postgres e Redis
+Integrações reais e opcionais, Node 22, readiness e webhook autenticado. Configuração e limites em [docs/infrastructure.md](docs/infrastructure.md). O código não prova que serviços externos estejam configurados; valide credenciais e deploy.

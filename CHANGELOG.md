@@ -1,5 +1,10 @@
 # Changelog
 
+## Backend 2.6.0
+
+E2B SDK com isolamento por workspace, webhook verificado contra bytes originais, Postgres com deduplicação durável e Redis com probes reais. Readiness, CORS, shutdown, Docker Node 22 e CI backend/container. WebSocket de logs corrigido. Infraestrutura externa requer configuração e validação separadas.
+
+
 ## v2.5.0 — 2026-09-30 (React + toolchain)
 
 - React 18 + esbuild integrados: ilha React sobre o core vanilla (js/react/), bundle único js/react-app.js (~140KB min, React embutido), carregado com defer e precacheado no SW

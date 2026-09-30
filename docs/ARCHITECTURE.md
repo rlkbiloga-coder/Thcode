@@ -35,3 +35,6 @@ tests/smoke.mjs       → 40+ checagens jsdom (boot, edição, terminal, plugins
 | `thcode.custom.v1` | Plugins personalizados (código-fonte) |
 | `thcode.users.v1` / `thcode.session.v1` | Contas locais (hash) + sessão |
 | `thcode.gh.*` | Cache de buscas GitHub |
+
+## Backend v2.6
+A arquitetura acima descreve módulos legados do frontend. A infraestrutura real E2B, Postgres e Redis está separada em `backend/src/e2b.js` e `backend/src/infrastructure.js`. Veja [infrastructure.md](infrastructure.md) para escopo e limitações de segurança.

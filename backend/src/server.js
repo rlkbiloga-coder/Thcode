@@ -3,6 +3,9 @@
    execução sem shell (execFile), workspace isolado. */
 import 'dotenv/config';
 import express from 'express';
+import cors from 'cors';
+import {createE2BRouter, createWebhookHandler} from './e2b.js';
+import {createInfrastructure} from './infrastructure.js';
 import http from 'node:http';
 import { WebSocketServer } from 'ws';
 import os from 'node:os';
@@ -24,8 +27,21 @@ catch (e) { if (e.code === 'EACCES' || e.code === 'EPERM') { config.workspace = 
 const app = express();
 app.set('trust proxy', 1);
 app.disable('x-powered-by');
-app.use(express.json({ limit: '2mb' }));
+const origins = (process.env.CORS_ORIGINS || 'https://rlkbiloga-coder.github.io').split(',').map(s => s.trim()).filter(Boolean);
+app.use(cors({ origin(origin, callback) {
+  callback(null, !origin || origins.includes(origin));
+}, methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], allowedHeaders: ['Authorization', 'Content-Type'], credentials: false }));
 app.use(rateLimit);
+const infrastructure=createInfrastructure();
+app.post('/api/e2b/webhook', express.raw({type:'application/json',limit:'256kb'}), createWebhookHandler({onEvent:infrastructure.recordEvent}));
+app.use(express.json({ limit: '2mb' }));
+app.use('/api/e2b', auth, createE2BRouter());
+app.get('/api/infrastructure', auth, async(r,w,next)=>{try{w.json(await infrastructure.health())}catch(e){next(e)}});
+app.get('/api/ready', async(r,w,next)=>{try{
+  const health=await infrastructure.health();
+  const ready=Boolean(config.token)&&health.ready;
+  w.status(ready?200:503).json({status:ready?'ready':'not_ready'});
+}catch(e){next(e)}});
 
 const wrap = fn => async (req, res) => {
   try { await fn(req, res); }
@@ -198,6 +214,13 @@ app.get('/api/billing/verify', auth, wrap(async (r, w) => {
 /* ============ 404 ============ */
 app.use((r, w) => w.status(404).json({ error: 'Rota não existe: ' + r.path }));
 
+app.use((err,r,w,next)=>{
+  if(w.headersSent)return next(err);
+  const status=err.status||500;
+  if(status>=500)log('ERROR','api',`${r.method} ${r.path}: operation failed`);
+  w.status(status).json({error:err.status?err.message:'Erro interno do servidor'});
+});
+
 /* ============ WEBSOCKET ============ */
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
@@ -205,9 +228,11 @@ const wss = new WebSocketServer({ server });
 /* /ws/terminal?token=... — sessão real de shell */
 wss.on('connection', (ws, req) => {
   const url = new URL(req.url, 'http://x');
+  if (req.headers.origin && !origins.includes(req.headers.origin)) { ws.close(4003, 'origem não autorizada'); return; }
   if (!config.token || url.searchParams.get('token') !== config.token) { ws.close(4001, 'token inválido'); return; }
+  if (url.pathname === '/ws/logs') return;
   if (url.pathname !== '/ws/terminal') { ws.close(4000, 'rota ws desconhecida'); return; }
-  if (sessions.size >= config.maxTerminals * 10) { ws.close(1013, 'limite de sessões'); return; }
+  if (sessions.size >= config.maxTerminals) { ws.close(1013, 'limite de sessões'); return; }
   const sess = startTerminal();
   log('INFO', 'ws', `terminal ${sess.id} conectado`);
   ws.send(JSON.stringify({ type: 'meta', id: sess.id, backend: backendType() }));
@@ -228,6 +253,7 @@ wss.on('connection', (ws, req) => {
 const logWs = new Set();
 wss.on('connection', (ws, req) => { /* /ws/logs */
   const url = new URL(req.url, 'http://x');
+  if (ws.readyState !== 1 || (req.headers.origin && !origins.includes(req.headers.origin))) return;
   if (url.pathname !== '/ws/logs' || !config.token || url.searchParams.get('token') !== config.token) return;
   logWs.add(ws);
   ws.send(JSON.stringify({ type: 'snapshot', logs: LOGS.slice(-100) }));
@@ -244,8 +270,20 @@ const _push = (level, service, message) => {
 export const pushLog = _push;
 
 const PORT = +(process.env.PORT || 8080);
+await infrastructure.init();
 server.listen(PORT, process.env.HOST || '0.0.0.0', () => {
   console.log(`Thcode backend real: http://localhost:${PORT}`);
   console.log(`Terminal: ${backendType()} | Workspace: ${path.resolve(config.workspace)}`);
   console.log(`Auth: ${config.token ? 'token configurado' : '⚠ THCODE_API_TOKEN ausente — API bloqueada'}`);
 });
+
+let shuttingDown=false;
+async function shutdown(){
+  if(shuttingDown)return;shuttingDown=true;
+  const timeout=setTimeout(()=>process.exit(1),10000);timeout.unref();
+  for(const id of [...sessions.keys()])killTerminal(id);
+  for(const ws of wss.clients)ws.terminate();
+  server.close(async()=>{await infrastructure.close();clearTimeout(timeout);process.exit(0)});
+}
+process.on('SIGTERM',shutdown);
+process.on('SIGINT',shutdown);

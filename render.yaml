@@ -8,6 +8,8 @@ services:
     startCommand: node src/server.js
     healthCheckPath: /api/health
     envVars:
+      - key: NODE_VERSION
+        value: 22
       - key: THCODE_API_TOKEN
         generateValue: true
       - key: WORKSPACE_DIR
