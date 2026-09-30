@@ -49,7 +49,7 @@ THCODE_API_TOKEN=<token> docker compose up -d
 ```
 
 ## Deploy rápido do backend
-[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/github?repo=https%3A%2F%2Fgithub.com%2Frlkbiloga-coder%2FThcode&rootDir=backend)
+Railway: conecte este repositório e configure Root Directory `/`, Config File `/railway.json` e Dockerfile `backend/Dockerfile`. O contexto Docker precisa da raiz, não da pasta `backend/`. Veja [DEPLOY.md](docs/DEPLOY.md).
 
 Render: New → Blueprint (usa render.yaml) • Fly: `fly launch` (usa fly.toml) • Docker: `docker compose up -d`
 
@@ -66,3 +66,6 @@ abra https://www.pwabuilder.com → cole a URL do site → Package for Stores �
 
 ### Backend v2.6: E2B, Postgres e Redis
 Integrações reais e opcionais, Node 22, readiness e webhook autenticado. Configuração e limites em [docs/infrastructure.md](docs/infrastructure.md). O código não prova que serviços externos estejam configurados; valide credenciais e deploy.
+
+### Expansão e manutenção
+TypeScript, Python, Bash e SQL têm funções reais de cliente API, validação, diagnóstico e auditoria. Veja [EXTENDING.md](docs/EXTENDING.md) e [PRIORITIES.md](docs/PRIORITIES.md). A inclusão de arquivos não habilita runtimes nem integrações ilimitadas.
