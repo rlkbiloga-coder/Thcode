@@ -14,7 +14,8 @@ const Drawer = {
         { ic: 'files', t: 'Abrir pasta', fn: () => pickImport(true) },
         { ic: 'terminal', t: 'Terminal', fn: () => Panel.open('terminal') },
         { ic: 'clock', t: 'Arquivos recentes', fn: () => recentDialog() },
-        { ic: 'cmd', t: 'Open Command Palette', fn: () => Palette.open() }
+        { ic: 'cmd', t: 'Open Command Palette', fn: () => Palette.open() },
+        { ic: 'grid', t: 'Painel React (Home)', fn: () => window.ThcodeReact?.open() }
       ]},
       { t: 'Configure', items: [
         { ic: 'settings', t: 'Configurações', fn: () => SettingsPage.open() },

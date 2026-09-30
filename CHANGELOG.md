@@ -1,5 +1,14 @@
 # Changelog
 
+## v2.5.0 — 2026-09-30 (React + toolchain)
+
+- React 18 + esbuild integrados: ilha React sobre o core vanilla (js/react/), bundle único js/react-app.js (~140KB min, React embutido), carregado com defer e precacheado no SW
+- Novo Painel (Home) em React: ações rápidas, arquivos do workspace, estado do app (versão, boot ms, plugins, tema) — acessível pela paleta de comandos e pelo drawer
+- Bundler de verdade: `npm run build:react` (esbuild) + `npm run dev` (dev server com watch em http://localhost:5173)
+- CI valida os dois artefatos gerados: script.js (concat) e react-app.js (bundle) — qualquer divergência entre fonte e build falha o pipeline
+- tests/react.mjs: 3 testes novos da camada React (montagem, render e integração com o core) — suíte total: 111 pass
+- window.ThcodeTest exporta newFile, quickOpen, pickImport para uso pela ilha React
+
 ## v2.4.4 — 2026-09-30 (#8)
 
 - Modularização: script.js (290KB, monolítico) dividido em 22 módulos-fonte em frontend/js/core/, organizados por domínio (editor, painéis, IA, terminal, plugins, boot…)

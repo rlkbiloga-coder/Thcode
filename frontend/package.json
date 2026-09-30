@@ -1,20 +1,25 @@
 {
   "name": "thcode",
-  "version": "2.4.4",
+  "version": "2.5.0",
   "description": "Thcode — editor de código mobile open-source (HTML5 + CSS3 + JS puro)",
   "type": "module",
   "scripts": {
     "start": "node server.js",
-    "test": "node scripts/build.mjs --check && node --check script.js && node --check js/thcode-pro.js && node --check js/thcode-server.js && node --check js/thcode-promo.js && node --check js/thcode-legal.js && node tests/smoke.mjs && node tests/ui-regression.mjs && node tests/wcag.mjs",
+    "test": "node scripts/build.mjs --check && node scripts/build-react.mjs --check && node --check script.js && node --check js/thcode-pro.js && node --check js/thcode-server.js && node --check js/thcode-promo.js && node --check js/thcode-legal.js && node tests/smoke.mjs && node tests/react.mjs && node tests/ui-regression.mjs && node tests/wcag.mjs",
     "lint": "node --check script.js",
-    "build": "node scripts/build.mjs",
-    "prebuild-check": "node scripts/build.mjs --check"
+    "build": "node scripts/build.mjs && node scripts/build-react.mjs",
+    "prebuild-check": "node scripts/build.mjs --check",
+    "build:react": "node scripts/build-react.mjs",
+    "dev": "node scripts/dev.mjs"
   },
   "license": "MIT",
   "devDependencies": {
+    "esbuild": "^0.24.0",
     "jsdom": "^24.0.0"
   },
   "dependencies": {
-    "jsdom": "^29.1.1"
+    "jsdom": "^29.1.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
   }
 }

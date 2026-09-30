@@ -21,6 +21,7 @@ const Palette = {
       { t: 'AI Assistant', ic: 'ai', fn: () => Panel.open('ai') },
       { t: 'Settings', ic: 'settings', fn: () => SettingsPage.open() },
       { t: 'Change Theme', ic: 'palette', fn: () => SettingsPage.theme() },
+      { t: 'Painel React (Home)', ic: 'grid', fn: () => window.ThcodeReact?.open() },
       { t: 'Preview', ic: 'preview', fn: () => Preview.open() },
       { t: 'Run (Terminal)', ic: 'play', fn: () => { Panel.open('terminal'); setTimeout(() => Term.exec('run'), 200); } },
       { t: 'Toggle Minimap', ic: 'eye', fn: () => { S.minimap = !S.minimap; applySettings(); Store.save(); renderEditor(); toast('Minimap ' + (S.minimap ? 'ativado' : 'desativado'), 'eye'); } },
