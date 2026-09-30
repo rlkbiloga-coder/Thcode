@@ -1,18 +1,17 @@
-# Thcode Backend — imagem de produção
-FROM node:20-alpine AS build
+FROM node:22-bookworm-slim AS dependencies
 WORKDIR /app
-RUN apk add --no-cache python3 make g++ bash git
-COPY backend/package.json backend/package-lock.json* ./
-RUN npm install --omit=dev
-COPY backend/src ./src
-RUN mkdir -p /workspace
+RUN apt-get update && apt-get install -y --no-install-recommends python3 make g++
+COPY backend/package*.json ./
+RUN npm ci --omit=dev
 
-FROM node:20-alpine
-RUN apk add --no-cache bash git python3
+FROM node:22-bookworm-slim
+RUN apt-get update && apt-get install -y --no-install-recommends bash git python3 openssh-client ca-certificates
 WORKDIR /app
-ENV NODE_ENV=production WORKSPACE_DIR=/workspace
-COPY --from=build /app/node_modules ./node_modules
-COPY --from=build /app/src ./src
-COPY backend/package.json ./
+COPY --from=dependencies /app/node_modules ./node_modules
+COPY backend/package*.json ./
+COPY backend/src ./src
+RUN mkdir /app/workspace && chown -R node:node /app
+USER node
+ENV NODE_ENV=production WORKSPACE_DIR=/app/workspace PORT=8080
 EXPOSE 8080
 CMD ["node", "src/server.js"]

@@ -39,3 +39,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: docker build --tag thcode-backend:test --file backend/Dockerfile .
+
+  maintenance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: python3 scripts/check_deploy.py
+      - run: python3 -m unittest discover -s scripts/tests -v
+      - run: bash -n scripts/smoke_ready.sh
+      - run: npm ci
+        working-directory: packages/api-client
+      - run: npm test
+        working-directory: packages/api-client
