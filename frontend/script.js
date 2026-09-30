@@ -21,7 +21,7 @@ const pad2 = n => String(n).padStart(2, '0');
 const fmtTime = (d = new Date()) => `${pad2(d.getHours())}:${pad2(d.getMinutes())}:${pad2(d.getSeconds())}`;
 const fmtSize = b => b < 1024 ? b + ' B' : b < 1048576 ? (b / 1024).toFixed(1) + ' KB' : (b / 1048576).toFixed(1) + ' MB';
 const icon = (n, st = '') => `<svg ${st ? `style="${st}"` : ''} aria-hidden="true"><use href="#i-${n}"/></svg>`;
-const APP_VER = 'v2.4.0 Studio';
+const APP_VER = 'v2.4.2 Studio';
 const ACODE_BASE = 'v1.13.5 (1011)';
 const THCODE_REPO = 'https://github.com/rlkbiloga-coder/Thcode';
 
@@ -4211,6 +4211,7 @@ async function realBoot({ splash, fill, status, had }) {
   if (!had || Panel._restoredOpen) Panel.open(Panel.current);
   renderEditor(); syncEditorScroll();
   setTimeout(() => splash.remove(), 450);
+  if (location.search.includes('share=')) handleShared();
   const now = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
   Metrics.bootMs = Math.round(now - BOOT_T0);
   clog('INFO', 'Thcode pronto em ' + Metrics.bootMs + 'ms');
@@ -4221,8 +4222,61 @@ function pwaInstall() {
   if (deferredPrompt) { deferredPrompt.prompt(); deferredPrompt.userChoice.then(() => { deferredPrompt = null; }); }
   else toast('Use "Adicionar à tela inicial" do navegador', 'info');
 }
+/* #1: PWA — avisa sobre nova versão com botão "Recarregar". */
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
-  navigator.serviceWorker.register('sw.js').catch(() => {});
+  navigator.serviceWorker.register('sw.js').then(reg => {
+    const announce = worker => {
+      if (!navigator.serviceWorker.controller) return; // primeira instalação: sem aviso
+      const wrap = document.createElement('div');
+      wrap.id = 'sw-update';
+      wrap.style.cssText = 'position:fixed;bottom:16px;left:12px;right:12px;z-index:99999;display:flex;gap:10px;align-items:center;justify-content:space-between;background:#151922;color:#eee;border:1px solid #2a3040;border-radius:12px;padding:12px 14px;box-shadow:0 8px 24px rgba(0,0,0,.45);font-size:.92rem';
+      wrap.innerHTML = '<span>' + icon('refresh') + ' Nova versão do Thcode disponível.</span>';
+      const btn = document.createElement('button');
+      btn.textContent = 'Recarregar';
+      btn.style.cssText = 'background:#a100ff;color:#fff;border:0;border-radius:8px;padding:8px 14px;font-weight:600';
+      btn.onclick = () => {
+        navigator.serviceWorker.addEventListener('controllerchange', () => location.reload(), { once: true });
+        worker.postMessage({ type: 'SKIP_WAITING' });
+        setTimeout(() => location.reload(), 1500); // garantia extra
+      };
+      wrap.appendChild(btn);
+      (document.body || document.documentElement).appendChild(wrap);
+      vibrate(20);
+    };
+    reg.addEventListener('updatefound', () => {
+      const w = reg.installing;
+      if (!w) return;
+      w.addEventListener('statechange', () => { if (w.state === 'installed' && navigator.serviceWorker.controller) announce(w); });
+    });
+    if (reg.waiting && navigator.serviceWorker.controller) announce(reg.waiting);
+    setInterval(() => reg.update().catch(() => {}), 6 * 60 * 60 * 1000);
+  }).catch(() => {});
+}
+
+/* #2: Web Share Target — arquivos/texto compartilhados pelo Android entram no VFS. */
+async function handleShared() {
+  if (!location.search.includes('share=')) return;
+  try {
+    if (!('caches' in window)) return;
+    const cache = await caches.open('thcode-share');
+    const keys = await cache.keys();
+    if (!keys.length) return;
+    let first = null, count = 0;
+    for (const req of keys) {
+      const res = await cache.match(req);
+      const blob = await res.blob();
+      const name = decodeURIComponent(new URL(req.url).pathname.split('/').pop() || 'compartilhado.txt');
+      const textual = /^text\//.test(blob.type) || /json|xml|javascript|csv|svg|html|css/.test(blob.type);
+      const content = textual ? await blob.text() : '[binário — ' + blob.size + ' bytes — compartilhado via Android]';
+      const p = normPath('/' + name);
+      fSet(p, content);
+      count++;
+      if (!first) first = p;
+    }
+    await caches.delete('thcode-share');
+    history.replaceState(null, '', location.pathname);
+    if (first) { openFile(first); Panel.render(); toast(count + (count > 1 ? ' arquivos' : ' arquivo') + ' compartilhado(s) recebido(s)', 'plus'); }
+  } catch (e) { clog('WARN', 'share target: ' + (e && e.message)); }
 }
 
 /* ==========================================================================

@@ -1,5 +1,12 @@
 # Changelog
 
+## v2.4.2 — 2026-09-30 (#1, #2)
+
+- PWA: aviso de nova versão com botão "Recarregar" (updatefound + SKIP_WAITING, verificação a cada 6h) — fecha #1
+- Web Share Target: compartilhar arquivos/texto do Android abre direto no editor (POST multipart interceptado pelo SW, stash em cache e importação ao VFS) — fecha #2
+- Versões de asset/cache bump para 2.4.2
+
+
 ## v2.0.0 — 2026-09-28 (Thcode)
 
 - Nova identidade open-source (MIT): Thcode, logotipo `<T/>`, PWA instalável
