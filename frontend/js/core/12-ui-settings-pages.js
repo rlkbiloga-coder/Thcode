@@ -39,9 +39,12 @@ const SettingsPage = {
     el.appendChild(setRow('book', 'Termos e Privacidade', 'Terms of service and privacy policy.', () => SettingsPage.legal()));
   },
   app(el0) {
-    Page.open('app', 'Configurações do aplicativo', el => {
+    Page.open('app', window.ThcodeI18n?.translate('Configurações do aplicativo') || 'Configurações do aplicativo', el => {
       sect(el, 'Idioma e região');
-      el.appendChild(selectRow('Idioma / Language', 'lang', [['pt-BR', 'Português (Brasil)'], ['en', 'English'], ['es', 'Español']], () => toast('Interface em pt-BR — tradução completa ainda não existe (não simulamos)', 'globe')));
+      el.appendChild(selectRow('Idioma / Language', 'lang', [['pt-BR', 'Português (Brasil)'], ['en', 'English'], ['es', 'Español']], async locale => {
+        try { await window.ThcodeI18n.setLanguage(locale, el); return true; }
+        catch (_) { toast('Não foi possível carregar o idioma. Tente novamente online.', 'info'); return false; }
+      }));
       sect(el, 'Comportamento');
       el.appendChild(toggleRow('vibrateOnTap', 'Vibrar ao tocar', 'vibrateOnTap — feedback tátil nas ações'));
       el.appendChild(toggleRow('confirmOnExit', 'Confirmar ao sair', 'confirmOnExit — pergunta antes de fechar com alterações'));
@@ -61,6 +64,7 @@ const SettingsPage = {
       sect(el, 'Salvamento');
       el.appendChild(segRow('Autosave', 'autosave', [[0, 'Off'], [5, '5s'], [15, '15s'], [30, '30s'], [60, '60s']], () => setupAutosave()));
       note(el, '<b>Dica:</b> todas as alterações são salvas automaticamente no dispositivo (localStorage).');
+      if (window.ThcodeI18n) window.ThcodeI18n.setLanguage(S.lang || 'pt-BR', el).catch(() => {});
     });
   },
   editor() {

@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "start": "node server.js",
-    "test": "node scripts/build.mjs --check && node scripts/build-react.mjs --check && node --check script.js && node --check js/thcode-pro.js && node --check js/thcode-server.js && node --check js/thcode-promo.js && node --check js/thcode-legal.js && node tests/smoke.mjs && node tests/react.mjs && node tests/ui-regression.mjs && node tests/wcag.mjs",
+    "test": "node scripts/build.mjs --check && node scripts/build-react.mjs --check && node --check script.js && node --check js/thcode-pro.js && node --check js/thcode-server.js && node --check js/thcode-promo.js && node --check js/thcode-legal.js && node tests/smoke.mjs && node tests/react.mjs && node tests/ui-regression.mjs && node tests/wcag.mjs && node tests/i18n.mjs",
     "lint": "node --check script.js",
     "build": "node scripts/build.mjs && node scripts/build-react.mjs",
     "prebuild-check": "node scripts/build.mjs --check",

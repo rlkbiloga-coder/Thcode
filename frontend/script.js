@@ -2436,7 +2436,18 @@ function selectRow(label, key, opts, cb) {
   const wrap = document.createElement('div');
   wrap.className = 'txt-row';
   wrap.innerHTML = `<label>${esc(label)}</label><select>${opts.map(([v, l]) => `<option value="${esc(v)}"${S[key] === v ? ' selected' : ''}>${esc(l)}</option>`).join('')}</select>`;
-  wrap.querySelector('select').onchange = e => { S[key] = e.target.value; Store.save(); if (cb) cb(S[key]); toast('Configuração atualizada', 'settings'); };
+  wrap.querySelector('select').onchange = e => {
+    if (key === 'lang' && window.ThcodeI18n) {
+      const previous = S.lang || 'pt-BR', next = e.target.value;
+      S.lang = next; Store.save();
+      Promise.resolve(cb ? cb(next) : true).then(ok => {
+        if (ok === false) { S.lang = previous; Store.save(); e.target.value = previous; return; }
+        toast(window.ThcodeI18n.translate('Configuração atualizada'), 'settings');
+      }).catch(() => { S.lang = previous; Store.save(); e.target.value = previous; toast('Não foi possível carregar o idioma. Tente novamente online.', 'info'); });
+      return;
+    }
+    S[key] = e.target.value; Store.save(); if (cb) cb(S[key]); toast('Configuração atualizada', 'settings');
+  };
   return wrap;
 }
 function textRow(label, key, type = 'text', cb) {
@@ -2490,9 +2501,12 @@ const SettingsPage = {
     el.appendChild(setRow('book', 'Termos e Privacidade', 'Terms of service and privacy policy.', () => SettingsPage.legal()));
   },
   app(el0) {
-    Page.open('app', 'Configurações do aplicativo', el => {
+    Page.open('app', window.ThcodeI18n?.translate('Configurações do aplicativo') || 'Configurações do aplicativo', el => {
       sect(el, 'Idioma e região');
-      el.appendChild(selectRow('Idioma / Language', 'lang', [['pt-BR', 'Português (Brasil)'], ['en', 'English'], ['es', 'Español']], () => toast('Interface em pt-BR — tradução completa ainda não existe (não simulamos)', 'globe')));
+      el.appendChild(selectRow('Idioma / Language', 'lang', [['pt-BR', 'Português (Brasil)'], ['en', 'English'], ['es', 'Español']], async locale => {
+        try { await window.ThcodeI18n.setLanguage(locale, el); return true; }
+        catch (_) { toast('Não foi possível carregar o idioma. Tente novamente online.', 'info'); return false; }
+      }));
       sect(el, 'Comportamento');
       el.appendChild(toggleRow('vibrateOnTap', 'Vibrar ao tocar', 'vibrateOnTap — feedback tátil nas ações'));
       el.appendChild(toggleRow('confirmOnExit', 'Confirmar ao sair', 'confirmOnExit — pergunta antes de fechar com alterações'));
@@ -2512,6 +2526,7 @@ const SettingsPage = {
       sect(el, 'Salvamento');
       el.appendChild(segRow('Autosave', 'autosave', [[0, 'Off'], [5, '5s'], [15, '15s'], [30, '30s'], [60, '60s']], () => setupAutosave()));
       note(el, '<b>Dica:</b> todas as alterações são salvas automaticamente no dispositivo (localStorage).');
+      if (window.ThcodeI18n) window.ThcodeI18n.setLanguage(S.lang || 'pt-BR', el).catch(() => {});
     });
   },
   editor() {

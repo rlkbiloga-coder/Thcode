@@ -196,7 +196,18 @@ function selectRow(label, key, opts, cb) {
   const wrap = document.createElement('div');
   wrap.className = 'txt-row';
   wrap.innerHTML = `<label>${esc(label)}</label><select>${opts.map(([v, l]) => `<option value="${esc(v)}"${S[key] === v ? ' selected' : ''}>${esc(l)}</option>`).join('')}</select>`;
-  wrap.querySelector('select').onchange = e => { S[key] = e.target.value; Store.save(); if (cb) cb(S[key]); toast('Configuração atualizada', 'settings'); };
+  wrap.querySelector('select').onchange = e => {
+    if (key === 'lang' && window.ThcodeI18n) {
+      const previous = S.lang || 'pt-BR', next = e.target.value;
+      S.lang = next; Store.save();
+      Promise.resolve(cb ? cb(next) : true).then(ok => {
+        if (ok === false) { S.lang = previous; Store.save(); e.target.value = previous; return; }
+        toast(window.ThcodeI18n.translate('Configuração atualizada'), 'settings');
+      }).catch(() => { S.lang = previous; Store.save(); e.target.value = previous; toast('Não foi possível carregar o idioma. Tente novamente online.', 'info'); });
+      return;
+    }
+    S[key] = e.target.value; Store.save(); if (cb) cb(S[key]); toast('Configuração atualizada', 'settings');
+  };
   return wrap;
 }
 function textRow(label, key, type = 'text', cb) {

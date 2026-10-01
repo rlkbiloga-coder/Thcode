@@ -1,0 +1,36 @@
+import {readFileSync} from 'node:fs';
+import {JSDOM} from 'jsdom';
+import assert from 'node:assert/strict';
+const html=readFileSync('index.html','utf8');
+const script=readFileSync('script.js','utf8');
+const localeFiles={'en':JSON.parse(readFileSync('i18n/en.json','utf8')),'es':JSON.parse(readFileSync('i18n/es.json','utf8'))};
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+async function createApp(fetcher) {
+ const dom=new JSDOM(html,{url:'https://example.test/Thcode/',runScripts:'outside-only',pretendToBeVisual:true});
+ const w=dom.window;w.HTMLCanvasElement.prototype.getContext=()=>({measureText:text=>({width:String(text).length*8})});w.matchMedia=()=>({matches:false,addListener(){},removeListener(){}});w.Element.prototype.scrollIntoView=function(){};w.fetch=fetcher;w.eval(script);w.eval(readFileSync('js/i18n.js','utf8'));
+ for(let i=0;i<100&&w.document.querySelector('#app').classList.contains('hidden');i++)await sleep(10);
+ assert.ok(w.ThcodeTest,'Thcode did not boot');return {dom,w};
+}
+const {dom,w}=await createApp(async path=>{const lang=String(path).match(/i18n\/(en|es)\.json/)?.[1];return lang?{ok:true,json:async()=>localeFiles[lang]}:{ok:false,status:404,json:async()=>({})}});
+const I=w.ThcodeI18n,app=w.ThcodeTest;
+app.SettingsPage.app();await I.setLanguage('pt-BR',w.document.querySelector('#pageBody'));
+assert.equal(w.document.documentElement.lang,'pt-BR');assert.equal(w.document.querySelector('#pageTitle').textContent,'Configurações do aplicativo');
+const select=w.document.querySelector('#pageBody select');assert.ok(select);assert.equal(select.value,'pt-BR');
+select.value='en';select.dispatchEvent(new w.Event('change',{bubbles:true}));await sleep(40);
+assert.equal(app.S.lang,'en');assert.equal(w.document.documentElement.lang,'en');assert.equal(w.document.querySelector('#pageTitle').textContent,'App settings');
+assert.ok(w.document.querySelector('#pageBody').textContent.includes('Appearance'),'English settings section missing');
+assert.ok(w.document.querySelector('#pageBody').textContent.includes('Reduce animations'),'English setting row missing');
+select.value='es';select.dispatchEvent(new w.Event('change',{bubbles:true}));await sleep(40);
+assert.equal(app.S.lang,'es');assert.equal(w.document.documentElement.lang,'es');assert.equal(w.document.querySelector('#pageTitle').textContent,'Ajustes de la aplicación');
+assert.ok(w.document.querySelector('#pageBody').textContent.includes('Comportamiento'),'Spanish settings section missing');
+select.value='pt-BR';select.dispatchEvent(new w.Event('change',{bubbles:true}));await sleep(40);
+assert.equal(app.S.lang,'pt-BR');assert.equal(w.document.documentElement.lang,'pt-BR');assert.equal(w.document.querySelector('#pageTitle').textContent,'Configurações do aplicativo');
+assert.equal(JSON.parse(w.localStorage.getItem(app.LS_KEY)).settings.lang,'pt-BR','locale was not saved to localStorage');
+await assert.rejects(I.setLanguage('fr'),/Unsupported locale/);
+w.close();
+const failing=await createApp(async()=>{throw Error('offline-test')});
+const fapp=failing.w.ThcodeTest;fapp.SettingsPage.app();await sleep(20);
+const failingSelect=failing.w.document.querySelector('#pageBody select');failingSelect.value='en';failingSelect.dispatchEvent(new failing.w.Event('change',{bubbles:true}));await sleep(40);
+assert.equal(fapp.S.lang,'pt-BR','failed catalogue switched stored preference');assert.equal(failing.w.document.documentElement.lang,'pt-BR','failed download advertised a language it could not load');assert.equal(failingSelect.value,'pt-BR','failed download did not restore language picker');
+failing.dom.window.close();
+console.log('PASS: settings localization pt-BR/en/es, persistent locale, translated UI metadata, and offline rollback');

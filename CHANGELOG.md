@@ -1,5 +1,10 @@
 # Changelog
 
+## i18n #10, primeiro bloco (2026-10-01)
+
+- Tradução real da tela Configurações do aplicativo para inglês e espanhol, com pt-BR padrão. O idioma escolhido persiste em `settings.lang`, atualiza o atributo `lang` do documento e funciona offline quando o PWA já guardou os JSON. A cobertura se limita à tela de configurações neste bloco; o issue #10 permanece aberto para o restante da interface e o tour inicial.
+- Catálogos `frontend/i18n/{pt-BR,en,es}.json`, seletor com tratamento de erro e fallback ao idioma anterior, pré-cache dos catálogos e teste real da seleção, persistência, alternância e falha offline.
+
 ## Backend 2.6.0
 
 E2B SDK com isolamento por workspace, webhook verificado contra bytes originais, Postgres com deduplicação durável e Redis com probes reais. Readiness, CORS, shutdown, Docker Node 22 e CI backend/container. WebSocket de logs corrigido. Esbuild atualizado para corrigir vulnerabilidade moderada, com bundle React recompilado e cache versionado. Infraestrutura externa requer configuração e validação separadas.
