@@ -39,5 +39,19 @@
   "Salvamento": "Saving",
   "Autosave": "Autosave",
   "Dica: todas as alterações são salvas automaticamente no dispositivo (localStorage).": "Tip: all changes are saved automatically on this device (localStorage).",
-  "Configuração atualizada": "Setting updated"
+  "Configuração atualizada": "Setting updated",
+  "tour.kicker": "Welcome to Thcode",
+  "tour.title.1": "Your code editor",
+  "tour.body.1": "Create and edit projects in your workspace. Open files appear in the editor, and your changes are saved on this device.",
+  "tour.title.2": "Terminal and preview",
+  "tour.body.2": "Open Terminal to run commands. Use Preview to check project pages as you work.",
+  "tour.title.3": "Plugins and tools",
+  "tour.body.3": "Explore Plugins to find tools that extend your editor. Install only what you want to use.",
+  "tour.title.4": "Install it on your device",
+  "tour.body.4": "On your phone, use the browser menu to add Thcode to your home screen. See available options in Android Bridge.",
+  "tour.progress": "Step {current} of {total}",
+  "tour.previous": "Back",
+  "tour.next": "Next",
+  "tour.skip": "Skip tour",
+  "tour.finish": "View installation options"
 }

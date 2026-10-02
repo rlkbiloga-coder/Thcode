@@ -788,3 +788,21 @@ body[data-theme="royal"]{--bg:#150a24;--bar:#211038;--accent:#a100ff;--accent2:#
 .cb-btns{display:flex;gap:8px}
 .cb-ok{background:#7ee2a8;color:#0d0f14;border:0;border-radius:8px;padding:9px 13px;font-weight:700;font-size:12.5px}
 .cb-min{background:transparent;color:#c3ccd9;border:1px solid #3a4354;border-radius:8px;padding:9px 13px;font-size:12.5px}
+
+/* Localized first-run tour. Respect the active theme and reduced-motion preference. */
+.thcode-tour-backdrop{position:fixed;inset:0;z-index:100001;display:grid;place-items:center;overflow-y:auto;padding:calc(20px + env(safe-area-inset-top)) 18px calc(20px + env(safe-area-inset-bottom));background:rgba(0,0,0,.72)}
+.thcode-tour-card{width:min(100%,440px);background:var(--bg2,#10141a);color:var(--text,#eef1f6);border:1px solid var(--line,#262e38);border-radius:20px;padding:clamp(22px,6vw,32px);box-shadow:0 20px 64px rgba(0,0,0,.55);animation:tour-arrive .2s ease-out both}
+.thcode-tour-kicker{margin:0 0 14px;color:var(--accent2,var(--accent,#a100ff));font-size:.8rem;font-weight:750;letter-spacing:.08em;text-transform:uppercase}
+.thcode-tour-title{margin:0;color:var(--text,#eef1f6);font-size:clamp(1.4rem,6vw,1.8rem);line-height:1.2}
+.thcode-tour-description{margin:14px 0 20px;color:var(--text2,#c6cdd6);font-size:1rem;line-height:1.65}
+.thcode-tour-progress{margin:0 0 8px;color:var(--muted,#8b95a3);font-size:.82rem}
+.thcode-tour-track{height:4px;overflow:hidden;border-radius:4px;background:var(--surface3,#222a34)}
+.thcode-tour-track-fill{display:block;height:100%;border-radius:inherit;background:var(--accent,#a100ff);transition:width .18s ease}
+.thcode-tour-actions{display:flex;align-items:center;gap:8px;margin-top:22px}
+.thcode-tour-actions button{min-height:44px;border:1px solid var(--line,#262e38);border-radius:10px;padding:9px 12px;background:var(--surface,#151a21);color:var(--text,#eef1f6);font:inherit;font-size:.88rem;font-weight:650;cursor:pointer}
+.thcode-tour-actions .thcode-tour-skip{margin-right:auto;background:transparent;color:var(--text2,#c6cdd6)}
+.thcode-tour-actions .thcode-tour-next{border-color:var(--accent,#a100ff);background:var(--accent,#a100ff);color:var(--accent-ink,#fff)}
+.thcode-tour-actions button:focus-visible{outline:3px solid var(--accent2,var(--accent,#a100ff));outline-offset:3px}
+.thcode-tour-actions button[hidden]{display:none}
+@keyframes tour-arrive{from{opacity:0;transform:translateY(8px) scale(.99)}to{opacity:1;transform:translateY(0) scale(1)}}
+@media(prefers-reduced-motion:reduce){.thcode-tour-card,.thcode-tour-track-fill{animation:none!important;transition:none!important}}

@@ -133,17 +133,3 @@
   };
   setTimeout(tryVerify, 800);
 })();
-
-/* First-run hint waits for consent instead of stacking dialogs. */
-(() => {
-  if (localStorage.getItem('thcode.tour.v1')) return;
-  const show = () => {
-    if (document.querySelector('#legalGate, #cookieBar, #splash')) return;
-    observer.disconnect();
-    localStorage.setItem('thcode.tour.v1', new Date().toISOString());
-    window.ThcodeTest?.toast('Menu: ferramentas e configurações. Ctrl+Shift+P: comandos.', 'info');
-  };
-  const observer = new MutationObserver(show);
-  observer.observe(document.body, {childList: true, subtree: true});
-  show();
-})();

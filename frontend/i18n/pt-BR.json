@@ -1,1 +1,16 @@
-{}
+{
+  "tour.kicker": "Boas-vindas ao Thcode",
+  "tour.title.1": "Seu editor de código",
+  "tour.body.1": "Crie e edite seus projetos no espaço de trabalho. O arquivo aberto aparece no editor; as alterações ficam salvas neste dispositivo.",
+  "tour.title.2": "Terminal e execução",
+  "tour.body.2": "Abra o Terminal para executar comandos. Use a Prévia para conferir páginas do projeto enquanto trabalha.",
+  "tour.title.3": "Plugins e recursos",
+  "tour.body.3": "Explore Plugins para descobrir ferramentas que ampliam o editor. Instale apenas o que quiser usar.",
+  "tour.title.4": "Instale e leve com você",
+  "tour.body.4": "No celular, use o menu do navegador para adicionar o Thcode à tela inicial. Veja as opções disponíveis no painel Android Bridge.",
+  "tour.progress": "Passo {current} de {total}",
+  "tour.previous": "Voltar",
+  "tour.next": "Continuar",
+  "tour.skip": "Pular tour",
+  "tour.finish": "Ver opções de instalação"
+}

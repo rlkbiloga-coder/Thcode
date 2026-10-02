@@ -2,12 +2,34 @@
 (function (g) {
   'use strict';
   const supported = new Set(['pt-BR', 'en', 'es']);
-  const catalogues = new Map([['pt-BR', {}]]);
+  // Keep the default language available before a catalogue fetch succeeds or while offline.
+  const catalogues = new Map([['pt-BR', {
+    'tour.kicker': 'Boas-vindas ao Thcode',
+    'tour.title.1': 'Seu editor de código',
+    'tour.body.1': 'Crie e edite seus projetos no espaço de trabalho. O arquivo aberto aparece no editor; as alterações ficam salvas neste dispositivo.',
+    'tour.title.2': 'Terminal e execução',
+    'tour.body.2': 'Abra o Terminal para executar comandos. Use a Prévia para conferir páginas do projeto enquanto trabalha.',
+    'tour.title.3': 'Plugins e recursos',
+    'tour.body.3': 'Explore Plugins para descobrir ferramentas que ampliam o editor. Instale apenas o que quiser usar.',
+    'tour.title.4': 'Instale e leve com você',
+    'tour.body.4': 'No celular, use o menu do navegador para adicionar o Thcode à tela inicial. Veja as opções disponíveis no painel Android Bridge.',
+    'tour.progress': 'Passo {current} de {total}',
+    'tour.previous': 'Voltar',
+    'tour.next': 'Continuar',
+    'tour.skip': 'Pular tour',
+    'tour.finish': 'Ver opções de instalação'
+  }]]);
   let active = 'pt-BR';
+  let initialising = Promise.resolve();
   try {
     const saved = JSON.parse(localStorage.getItem('thcode.app.v2') || '{}')?.settings?.lang;
-    if (supported.has(saved) && saved !== 'pt-BR') catalogue(saved).then(() => { active = saved; document.documentElement.lang = saved; }).catch(() => {});
-  } catch (_) { /* first launch or unavailable storage: Portuguese remains the default */ }
+    if (supported.has(saved) && saved !== 'pt-BR') {
+      initialising = catalogue(saved).then(() => {
+        active = saved;
+        document.documentElement.lang = saved;
+      }).catch(() => { /* Keep pt-BR if a saved catalogue is unavailable offline. */ });
+    }
+  } catch (_) { /* First launch or unavailable storage: Portuguese remains the default. */ }
   async function catalogue(locale) {
     if (catalogues.has(locale)) return catalogues.get(locale);
     if (!supported.has(locale)) throw new Error('Unsupported locale');
@@ -41,6 +63,8 @@
   }
   g.ThcodeI18n = {
     current: () => active,
+    ready() { return initialising; },
+    async t(key) { await initialising; return translate(key, await catalogue(active)); },
     translate(text) { return translate(text, catalogues.get(active) || {}); },
     async applySettings(root) { const dict = await catalogue(active); applySettings(root, dict); return true; },
     setLanguage
