@@ -1,7 +1,7 @@
 /* Network-first application assets; offline fallback never returns HTML as JS. */
-const CACHE = 'thcode-studio-2.5.0-i18n1';
-const CORE = ['./', './index.html', './style.css?v=2.5.0', './modern.css?v=2.5.0', './script.js?v=2.5.0-i18n1', './js/react-app.js?v=2.5.0-infra1', './js/i18n.js?v=2.5.0-i18n1', './i18n/pt-BR.json', './i18n/en.json', './i18n/es.json',
- './js/thcode-pro.js?v=2.5.0', './js/thcode-server.js?v=2.5.0', './js/thcode-promo.js?v=2.5.0', './js/thcode-legal.js?v=2.5.0',
+const CACHE = 'thcode-studio-2.5.1';
+const CORE = ['./', './index.html', './style.css?v=2.5.1', './modern.css?v=2.5.1', './script.js?v=2.5.1', './js/react-app.js?v=2.5.1', './js/i18n.js?v=2.5.1', './i18n/pt-BR.json', './i18n/en.json', './i18n/es.json',
+ './js/thcode-pro.js?v=2.5.1', './js/thcode-server.js?v=2.5.1', './js/thcode-promo.js?v=2.5.1', './js/thcode-legal.js?v=2.5.1',
  './manifest.json', './assets/logo.svg', './assets/icon-192.png', './assets/icon-512.png'];
 const SHARE_CACHE = 'thcode-share';
 const SCOPE = new URL(self.registration.scope).pathname;

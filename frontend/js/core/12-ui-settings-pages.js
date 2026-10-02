@@ -23,7 +23,7 @@ const SettingsPage = {
     el.appendChild(setRow('info', 'Sobre', 'Version 2.0.0', () => this.about()));
     el.appendChild(setRow('heart', 'Patrocinador', 'Support ongoing Acode development.', () => this.sponsor()));
     el.appendChild(setRow('clock', 'Registro de Alterações', 'See recent updates and release notes.', () => this.changelog()));
-    el.appendChild(setRow('star', 'Avaliar Thcode', 'Rate Thcode on Google Play.', () => this.rate()));
+    el.appendChild(setRow('star', 'Avaliar Thcode', 'Deixe uma estrela no GitHub.', () => this.rate()));
     sect(el, 'Support Thcode');
     el.appendChild(setRow('play', 'Earn ad-free time', 'Watch ads to unlock temporary ad-free access.', () => this.adfree()));
     el.appendChild(setRow('lock', 'Remover propagandas', 'Unlock permanent ad-free access.', () => this.removeAds()));
@@ -317,16 +317,17 @@ const SettingsPage = {
   about() {
     Page.open('about', 'Sobre', el => {
       el.innerHTML = `<div class="about-hero"><div class="drawer-logo" id="aboutLogo">${icon('logo', 'color:#fff')}</div>
-        <h2>Acode ${S.developerMode ? '<span style="font-size:10px;background:var(--accent);color:#fff;border-radius:5px;padding:2px 7px;vertical-align:3px">DEV</span>' : ''}</h2>
-        <p>powerful text/code editor for android</p></div>`;
+        <h2>Thcode ${S.developerMode ? '<span style="font-size:10px;background:var(--accent);color:#fff;border-radius:5px;padding:2px 7px;vertical-align:3px">DEV</span>' : ''}</h2>
+        <p>editor de código no navegador, inspirado no Acode</p></div>`;
       const rows = [
         ['info', 'Versão', APP_VER],
         ['terminal', 'Plataforma', (navigator.userAgentData ? navigator.userAgentData.platform : navigator.platform || 'web') + ' (real)'],
         ['globe', 'Núcleos CPU', (navigator.hardwareConcurrency || '?') + ' (real)'],
         ['files', 'Idioma', S.lang || 'pt-BR'],
+        ['star', 'Inspirado no', 'Acode (acode.foxdebug.com)'],
         ['files', 'Base Acode', ACODE_BASE],
         ['puzzle', 'Plugins instalados', Object.keys(Plugins.installed).length + ''],
-        ['heart', 'Licença', 'MIT — Thcode • base Acode']
+        ['heart', 'Licença', 'MIT — Thcode • inspirado no Acode']
       ];
       rows.forEach(([ic, t, s]) => {
         const d = document.createElement('div');
@@ -335,10 +336,12 @@ const SettingsPage = {
         el.appendChild(d);
       });
       const r = document.createElement('div'); r.className = 'btn-row';
-      r.innerHTML = '<button class="big-btn">Website</button><button class="big-btn">GitHub</button>';
-      r.children[0].onclick = () => window.open('https://acode.foxdebug.com', '_blank');
+      r.innerHTML = '<button class="big-btn">Site</button><button class="big-btn">GitHub</button><button class="big-btn">Acode ❤</button>';
+      r.children[0].onclick = () => window.open('https://rlkbiloga-coder.github.io/Thcode/', '_blank');
       r.children[1].onclick = () => window.open(THCODE_REPO, '_blank');
+      r.children[2].onclick = () => window.open('https://acode.foxdebug.com', '_blank');
       el.appendChild(r);
+      note(el, '<b>O Thcode é um projeto próprio</b>, criado do zero e inspirado no <b>Acode</b> (acode.foxdebug.com).');
       applyAppIcon();
     });
   },
@@ -370,7 +373,7 @@ const SettingsPage = {
   },
   rate() {
     dialog({
-      title: 'Avaliar Thcode', body: '<p style="margin:6px 0 10px">Rate Acode on Google Play.</p><div id="stars" style="font-size:34px;text-align:center;letter-spacing:6px;cursor:pointer">★★★★★</div>',
+      title: 'Avaliar Thcode', body: '<p style="margin:6px 0 10px">Deixe uma estrela no repositório do Thcode no GitHub:</p><div id="stars" style="font-size:34px;text-align:center;letter-spacing:6px;cursor:pointer">★★★★★</div>',
       buttons: [{ label: 'Depois', value: false }, { label: 'Avaliar', primary: true, value: true }],
       onMount: () => {
         const st = $('#stars');
@@ -379,7 +382,7 @@ const SettingsPage = {
         paint();
         st.onclick = e => { const i = [...st.children].indexOf(e.target.closest('span')); if (i >= 0) { n = i + 1; paint(); vibrate(8); } };
       }
-    }).then(r => { if (r) { toast('Avaliação salva no seu dispositivo (sem envio — Play Store requer publicação)', 'star'); clog('INFO', 'App rated locally'); } });
+    }).then(r => { if (r) { window.open(THCODE_REPO, '_blank'); toast('Abrindo o GitHub do Thcode…', 'star'); clog('INFO', 'Aberto GitHub para avaliação'); } });
   },
   adfree() {
     Page.open('adfree', 'Sem anúncios', el => {

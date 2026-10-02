@@ -1,5 +1,12 @@
 # Changelog
 
+## v2.5.1 — 2026-10-02 (identidade Thcode)
+
+- Drawer: seção "Conectar" agora leva ao site e GitHub do Thcode; Acode aparece creditado como inspiração
+- Sobre: hero diz Thcode, nota de crédito ao Acode, botões Site/GitHub/Acode próprios
+- "Avaliar" abre o repositório no GitHub (não existe publicação no Play Store)
+- Rate/sponsor/descoberta alinhados à identidade do projeto
+
 ## i18n #10, primeiro bloco (2026-10-01)
 
 - Tradução real da tela Configurações do aplicativo para inglês e espanhol, com pt-BR padrão. O idioma escolhido persiste em `settings.lang`, atualiza o atributo `lang` do documento e funciona offline quando o PWA já guardou os JSON. A cobertura se limita à tela de configurações neste bloco; o issue #10 permanece aberto para o restante da interface e o tour inicial.
@@ -8,7 +15,6 @@
 ## Backend 2.6.0
 
 E2B SDK com isolamento por workspace, webhook verificado contra bytes originais, Postgres com deduplicação durável e Redis com probes reais. Readiness, CORS, shutdown, Docker Node 22 e CI backend/container. WebSocket de logs corrigido. Esbuild atualizado para corrigir vulnerabilidade moderada, com bundle React recompilado e cache versionado. Infraestrutura externa requer configuração e validação separadas.
-
 
 ## v2.5.0 — 2026-09-30 (React + toolchain)
 

@@ -28,11 +28,10 @@ const Drawer = {
         { ic: 'info', t: 'Sobre', fn: () => SettingsPage.about() },
         { ic: 'star', t: 'Descobrir', fn: () => SettingsPage.discover() }
       ]},
-      { t: 'Connect', items: [
-        { ic: 'globe', t: 'Website', fn: () => window.open('https://acode.foxdebug.com', '_blank') },
-        { ic: 'discord', t: 'Discord', fn: () => window.open('https://acode.foxdebug.com', '_blank') },
-        { ic: 'github', t: 'GitHub', fn: () => window.open(THCODE_REPO, '_blank') },
-        { ic: 'telegram', t: 'Telegram', fn: () => window.open('https://acode.foxdebug.com', '_blank') }
+      { t: 'Conectar', items: [
+        { ic: 'globe', t: 'Site do Thcode', fn: () => window.open('https://rlkbiloga-coder.github.io/Thcode/', '_blank') },
+        { ic: 'github', t: 'GitHub do Thcode', fn: () => window.open(THCODE_REPO, '_blank') },
+        { ic: 'star', t: 'Acode — inspiração do Thcode', fn: () => window.open('https://acode.foxdebug.com', '_blank') }
       ]}
     ];
     body.innerHTML = '';
