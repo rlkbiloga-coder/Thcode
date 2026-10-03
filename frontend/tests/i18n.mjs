@@ -14,15 +14,18 @@ async function createApp(fetcher) {
 const {dom,w}=await createApp(async path=>{const lang=String(path).match(/i18n\/(en|es)\.json/)?.[1];return lang?{ok:true,json:async()=>localeFiles[lang]}:{ok:false,status:404,json:async()=>({})}});
 const I=w.ThcodeI18n,app=w.ThcodeTest;
 app.SettingsPage.app();await I.setLanguage('pt-BR',w.document.querySelector('#pageBody'));
+assert.equal(w.document.querySelector('#rail').getAttribute('aria-label'),'Navegação');assert.equal(w.document.querySelector('#editorInput').getAttribute('aria-label'),'Editor de código');
 assert.equal(w.document.documentElement.lang,'pt-BR');assert.equal(w.document.querySelector('#pageTitle').textContent,'Configurações do aplicativo');
 const select=w.document.querySelector('#pageBody select');assert.ok(select);assert.equal(select.value,'pt-BR');
 select.value='en';select.dispatchEvent(new w.Event('change',{bubbles:true}));await sleep(40);
 assert.equal(app.S.lang,'en');assert.equal(w.document.documentElement.lang,'en');assert.equal(w.document.querySelector('#pageTitle').textContent,'App settings');
 assert.ok(w.document.querySelector('#pageBody').textContent.includes('Appearance'),'English settings section missing');
 assert.ok(w.document.querySelector('#pageBody').textContent.includes('Reduce animations'),'English setting row missing');
+assert.equal(w.document.querySelector('#rail').getAttribute('aria-label'),'Navigation');assert.equal(w.document.querySelector('[data-panel=files]').getAttribute('title'),'Files');assert.equal(w.document.querySelector('#paletteInput').placeholder,'Type a command... (Ctrl+Shift+P)');assert.equal(w.document.querySelector('.palette').getAttribute('aria-label'),'Command palette');assert.equal(w.document.querySelector('#pageBack').getAttribute('aria-label'),'Back');assert.equal(w.document.querySelector('.palette-foot span').textContent,'↑↓ navigate');
 select.value='es';select.dispatchEvent(new w.Event('change',{bubbles:true}));await sleep(40);
 assert.equal(app.S.lang,'es');assert.equal(w.document.documentElement.lang,'es');assert.equal(w.document.querySelector('#pageTitle').textContent,'Ajustes de la aplicación');
 assert.ok(w.document.querySelector('#pageBody').textContent.includes('Comportamiento'),'Spanish settings section missing');
+assert.equal(w.document.querySelector('#rail').getAttribute('aria-label'),'Navegación');assert.equal(w.document.querySelector('[data-panel=files]').getAttribute('title'),'Archivos');assert.equal(w.document.querySelector('#paletteInput').placeholder,'Escribe un comando... (Ctrl+Shift+P)');assert.equal(w.document.querySelector('#menuBtn').getAttribute('aria-label'),'Menú');assert.equal(w.document.querySelector('.palette-foot span').textContent,'↑↓ navegar');
 select.value='pt-BR';select.dispatchEvent(new w.Event('change',{bubbles:true}));await sleep(40);
 assert.equal(app.S.lang,'pt-BR');assert.equal(w.document.documentElement.lang,'pt-BR');assert.equal(w.document.querySelector('#pageTitle').textContent,'Configurações do aplicativo');
 assert.equal(JSON.parse(w.localStorage.getItem(app.LS_KEY)).settings.lang,'pt-BR','locale was not saved to localStorage');

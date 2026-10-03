@@ -1,3 +1,8 @@
+## [2.5.3] - 2026-10-03
+
+- Adicionadas traduções pt-BR, inglês e espanhol para a navegação principal, acessibilidade da moldura e comandos da paleta. A preferência de idioma existente atualiza esses rótulos; PT-BR permanece seguro em uso offline.
+- Testes i18n cobrem rótulos, títulos, `aria-label`, placeholders e comandos nos três idiomas. Cache do shell PWA atualizado para entregar o módulo novo.
+
 # Changelog
 
 ## v2.5.1 — 2026-10-02 (identidade Thcode)

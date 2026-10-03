@@ -1,6 +1,6 @@
 {
   "name": "thcode",
-  "version": "2.5.2",
+  "version": "2.5.3",
   "description": "Thcode — editor de código mobile open-source (HTML5 + CSS3 + JS puro)",
   "type": "module",
   "scripts": {

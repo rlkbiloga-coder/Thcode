@@ -41,6 +41,23 @@
     return data;
   }
   function translate(text, dict) { return dict[text] || text; }
+  function applyShell(root, dict) {
+    if (!root) return;
+    root.querySelectorAll('[data-i18n]').forEach(el => {
+      const original = el.hasAttribute('data-i18n-source') ? el.getAttribute('data-i18n-source') : el.textContent.trim();
+      if (!el.hasAttribute('data-i18n-source')) el.setAttribute('data-i18n-source', original);
+      el.textContent = translate(original, dict);
+    });
+    for (const attribute of ['aria-label', 'title', 'placeholder']) {
+      const sourceAttribute = `data-i18n-${attribute}-source`;
+      root.querySelectorAll(`[${attribute}]`).forEach(el => {
+        const original = el.hasAttribute(sourceAttribute) ? el.getAttribute(sourceAttribute) : el.getAttribute(attribute);
+        if (!dict[original]) return;
+        if (!el.hasAttribute(sourceAttribute)) el.setAttribute(sourceAttribute, original);
+        el.setAttribute(attribute, translate(original, dict));
+      });
+    }
+  }
   function applySettings(root, dict) {
     if (!root) return;
     const selectors = '.set-sect, .set-row .t, .set-row .s, .txt-row > label, .seg .sect, .seg button, .note';
@@ -58,6 +75,7 @@
     if (title && title.textContent.trim() === 'Configurações do aplicativo' || title && ['App settings', 'Ajustes de la aplicación'].includes(title.textContent.trim())) {
       title.textContent = translate('Configurações do aplicativo', dict);
     }
+    applyShell(document, dict);
     if (settingsRoot) applySettings(settingsRoot, dict);
     return true;
   }
@@ -67,6 +85,8 @@
     async t(key) { await initialising; return translate(key, await catalogue(active)); },
     translate(text) { return translate(text, catalogues.get(active) || {}); },
     async applySettings(root) { const dict = await catalogue(active); applySettings(root, dict); return true; },
+    async applyShell(root = document) { await initialising; applyShell(root, await catalogue(active)); return true; },
     setLanguage
   };
+  initialising.then(() => applyShell(document, catalogues.get(active) || {}));
 })(window);
