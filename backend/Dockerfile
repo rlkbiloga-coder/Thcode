@@ -5,7 +5,7 @@ COPY backend/package*.json ./
 RUN npm ci --omit=dev
 
 FROM node:22-bookworm-slim
-RUN apt-get update && apt-get install -y --no-install-recommends git python3 openssh-client ca-certificates
+RUN apt-get update && apt-get install -y --no-install-recommends bash git python3 openssh-client ca-certificates
 WORKDIR /app
 COPY --from=dependencies /app/node_modules ./node_modules
 COPY backend/package*.json ./

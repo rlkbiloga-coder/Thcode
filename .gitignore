@@ -2,3 +2,11 @@ node_modules/
 .DS_Store
 *.log
 coverage/
+
+# Maintenance and typed client outputs
+__pycache__/
+*.pyc
+packages/api-client/dist/
+.env
+.env.*
+!.env.example
